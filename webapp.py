@@ -37,6 +37,8 @@ class User(db.Model):
 
     @staticmethod
     def verify_auth_token(token):
+        # from IPython import embed
+        # embed()
         s = Serializer(app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
@@ -86,6 +88,20 @@ class Task(db.Model):
 
 
 # routines 
+@app.route('/api/v1/token', methods=['GET'])
+@auth.login_required
+def get_auth_token():
+    token = g.user.generate_auth_token(600)
+    return jsonify({'token': token.decode('ascii'), 'user':g.user.username,'duration': 600})
+
+@app.route('/api/v1/token', methods=['POST'])
+def verify_token():
+    token = request.authorization['username']
+    print token
+
+    valid = bool(User.verify_auth_token(token))
+    return jsonify({'valid': valid})
+
 
 @auth.verify_password
 def verify_password(username_or_token, password):
@@ -113,25 +129,36 @@ def new_user():
     db.session.add(user)
     db.session.commit()
     return (jsonify({'username': user.username}), 201,
-            {'Location': url_for('get_user', id=user.id, _external=True)})
+            {'Location': url_for('main', _external=True)})
 
 
 @app.route('/api/v1/tasks', methods=['GET'])
 @auth.login_required
 def get_tasks():
-    tasks = {t.name : t.goal.name for t in g.user.get_tasks()}
+    tasks = [{'tid': t.id, 'name': t.name ,'goal': t.goal.name} for t in g.user.get_tasks()]
     return jsonify({'tasks': tasks})
 
 @app.route('/api/v1/tasks', methods=['POST'])
 @auth.login_required
 def post_task():
+    tid = request.json.get('tid')
     name = request.json.get('name')
-    goal_id = request.json.get('goal_id')
-    if name is None or goal_id is None:
+    goalname = request.json.get('goal')
+
+    if name is None or goalname is None:
         abort(400)    # missing arguments
-    if Task.query.filter_by(name=name).first() is not None:
+
+    # if this is an edit look for appropriate task
+    if tid and (tid not in map(lambda x: x.id, g.user.get_tasks())): 
+        abort(400)    # invalid tid
+
+    if goalname and (goalname not in map(lambda x: x.name, g.user.get_goals())):
+        abort(400)    # invalid goal
+    
+    if filter(lambda x: x.name == name, g.user.get_tasks()):
         abort(400)    # existing task
-    t = Task(name=name, goal_id=goal_id)
+
+    t = Task(name=name, goal_id=Goal.query.filter_by(name=goalname).first().id)
     db.session.add(t)
     db.session.commit()
     return jsonify({'status': SUCCESS})
@@ -139,22 +166,27 @@ def post_task():
 @app.route('/api/v1/goals', methods=['GET'])
 @auth.login_required
 def get_goals():
-    goals = {t.name : t.weight for t in g.user.get_goals()}
+    goals = [{'name': t.name ,'weight' : t.weight} for t in g.user.get_goals()]
     return jsonify({'goals': goals})
 
 @app.route('/api/v1/goals', methods=['POST'])
 @auth.login_required
 def post_goal():
+    gid = request.json.get('gid')
     name = request.json.get('name')
     weight = request.json.get('weight')
 
     if name is None or weight is None:
         abort(400)    # missing arguments
-    elif Goal.query.filter_by(name=name,user_id=g.user.id).first() is not None:
-        t = Goal.query.filter_by(name=name,user_id=g.user.id).first()
-        t.weight = weight
-    else:
-        t = Goal(name=name, weight=weight, user_id=g.user.id)
+
+    # if this is an edit look for appropriate task
+    if gid and (gid not in map(lambda x: x.id, g.user.get_goals())): 
+        abort(400)    # invalid gid
+    
+    if filter(lambda x: x.name == name, g.user.get_goals()):
+        abort(400)    # existing goal
+    
+    t = Goal(name=name, weight=weight, user_id=g.user.id)
     db.session.add(t)
     db.session.commit()
     return jsonify({'status': SUCCESS})
@@ -184,4 +216,8 @@ def main():
 if __name__ == '__main__':
     if not os.path.exists('db.sqlite'):
         db.create_all()
-    app.run(debug=True)
+    # from OpenSSL import SSL
+    # context = SSL.Context(SSL.SSLv23_METHOD)
+    # context.use_privatekey_file('yourserver.key')
+    # context.use_certificate_file('yourserver.crt')
+    app.run(debug=True)#, ssl_context=context)

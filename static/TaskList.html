@@ -1,0 +1,28 @@
+<div class="container" ng-swipe-left='goals'>
+	<h3>Current Milestones</h3>
+	<ul class="list-group">
+		<li  class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-repeat="task in tasks">
+			{[{task.name}]}
+			<span class="badge">
+				{[{task.goal}]}
+			</span>
+		</li>
+		<li class="list-group-item" ng-style="{'background-color' : getColor(goal_name)}">
+	
+			<form ng-submit="addTask(task_name,goal_name)">
+				<input type="text" ng-model="task_name" class="task_input" ng-style="{'background-color' : getColor(goal_name)}">
+					<span class="badge" style="float: right;">
+					<select ng-model="goal_name">
+						<option value="">None</option>
+						<option ng-repeat="goal in goals" value="{[{goal.name}]}">
+							{[{goal.name}]}
+						</option>
+					</select>
+					</span>
+					<input style="display: none;" type="submit">
+			</form>
+
+		</li>
+	</ul>
+	
+</div>

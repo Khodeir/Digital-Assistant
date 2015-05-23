@@ -1,0 +1,27 @@
+<html ng-app="digitalAssistant">
+
+<head>
+  <title>Digital Assistant</title>
+
+  <script src="/static/components/angular/angular.js"></script>
+  <script src="/static/components/angular-ui-router/release/angular-ui-router.min.js"></script>
+  <script src="/static/components/angular-ui-router/release/angular-ui-router.min.js"></script>
+  <script src="/static/components/angular-touch/angular-touch.min.js"></script>
+  <script src="/static/components/angular-cookies/angular-cookies.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.0/ui-bootstrap-tpls.js"></script>
+  <script src="/static/usermgmt.js"></script>
+  <script src="/static/base64.js"></script>
+  <script src="/static/app.js"></script>
+  <script src="/static/components/angular-ui-router/release/angular-ui-router.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/stylesheet.css">
+
+</head>
+<body>
+<button ng-hide="!!$root.currentUser" class="btn-primary" ui-sref="app.tasks">Login</button>
+<div ui-view></div> 
+
+</body>
+
+</html>
+

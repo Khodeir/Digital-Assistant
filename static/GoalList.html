@@ -1,0 +1,22 @@
+<div class="container">
+  <h3>Current Goals</h3>
+  <ul class="list-group">
+    <li  class="task list-group-item" ng-style="{'background-color' : getColor(goal.name)}" ng-repeat="goal in goals">
+      {[{goal.name}]}
+      <span class="badge">
+        {[{goal.weight}]}
+      </span>
+    </li>
+    <li class="list-group-item">
+  
+      <form ng-submit="addGoal(goal_name,goal_weight)">
+        <input type="text" ng-model="goal_name">
+          <span style="float: right;">
+            <input type="number" ng-model="goal_weight">
+          </span>
+          <input type="submit" >
+      </form>
+
+    </li>
+  </ul>
+</div>

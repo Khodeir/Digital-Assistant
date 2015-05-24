@@ -1,20 +1,31 @@
 <div class="container">
   <h3>Current Goals</h3>
   <ul class="list-group">
-    <li  class="task list-group-item" ng-style="{'background-color' : getColor(goal.name)}" ng-repeat="goal in goals">
+    <li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : getColor(goal.name)}" ng-class="{selected: $index==selected}" ng-repeat="goal in goals">
+
+    <form ng-if="editing==$index" ng-submit="editGoal(goal)" ng-keyup="$event.keyCode == 13 && editGoal(goal)">
+      <input ng-model="goal.name" type="text" ng-style="{'background-color' : getColor(goal.name)}">
+      
+      <span class="badge" style="float: right; color: black;">
+            <input type="number" ng-model="goal.weight">
+      </span>
+    </form>
+
+
+    <div ng-if="editing!=$index">
       {[{goal.name}]}
-      <span class="badge">
+      <span class="badge" style="float: right;">
         {[{goal.weight}]}
       </span>
+    </div>
     </li>
     <li class="list-group-item">
   
-      <form ng-submit="addGoal(goal_name,goal_weight)">
+      <form ng-submit="addGoal(goal_name,goal_weight)" ng-keyup="$event.keyCode == 13 && addGoal(goal_name,goal_weight)">
         <input type="text" ng-model="goal_name">
           <span style="float: right;">
             <input type="number" ng-model="goal_weight">
           </span>
-          <input type="submit" >
       </form>
 
     </li>

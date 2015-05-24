@@ -31,17 +31,28 @@ app.run(function ($rootScope, $state, loginModal, Session) {
 });
 
 app.controller('TaskController', 
-  function ($scope, $rootScope,Tasks,Goals){
+  function ($scope, $rootScope, Tasks, Goals){
     $scope.user = $rootScope.currentUser;
     $scope.tasks = [];
     $scope.goals = [];
+    $scope.selected = null;
+    $scope.editing = null;
+
+    $scope.selectRow = function (i){
+      if($scope.selected==i){
+        $scope.editing = i;
+      }
+      else{
+        $scope.editing = null;
+        $scope.selected = i;
+      }
+    }
     
     function getTasks(){
       Tasks.get().success(function(data) {
         $scope.tasks = data.tasks;
       });
     }
-    
 
     function getGoals(){
       Goals.get().success(function(data){
@@ -53,7 +64,18 @@ app.controller('TaskController',
     $scope.getColor = Goals.getColor;
 
     $scope.addTask = function (t,g){
-      Tasks.add(t,g).success(getTasks);
+      Tasks.add(t,g).success(function(){
+        getTasks();
+        $scope.task_name = '';
+        $scope.goal_name = '';
+      });
+    };
+    $scope.editTask = function(task){
+      Tasks.add(task.name,task.goal,task.tid)
+            .success(getTasks)
+            .then(function (){
+              $scope.editing = null;
+            });
     };
 
     getGoals();
@@ -63,6 +85,19 @@ app.controller('TaskController',
 app.controller('GoalController', 
   function ($scope, Goals){
     $scope.goals = [];
+    $scope.selected = null;
+    $scope.editing = null;
+
+    $scope.selectRow = function (i){
+      if($scope.selected==i){
+        $scope.editing = i;
+      }
+      else{
+        $scope.editing = null;
+        $scope.selected = i;
+      }
+
+    }
     
     function getGoals(){
       Goals.get().success(function(data){
@@ -71,7 +106,18 @@ app.controller('GoalController',
     }
 
     $scope.addGoal = function (name,weight){
-      Goals.add(name,weight).success(getGoals);
+      Goals.add(name,weight).success(function(){
+        getGoals();
+        $scope.goal_name = '';
+        $scope.goal_weight = '';
+      });
+    };
+    $scope.editGoal = function(goal){
+      Goals.add(goal.name,goal.weight,goal.gid)
+            .success(getGoals)
+            .then(function (){
+              $scope.editing = null;
+            });
     };
 
     getGoals();

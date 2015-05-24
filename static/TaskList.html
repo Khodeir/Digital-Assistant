@@ -1,11 +1,25 @@
-<div class="container" ng-swipe-left='goals'>
+<div class="container">
 	<h3>Current Milestones</h3>
 	<ul class="list-group">
-		<li  class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-repeat="task in tasks">
+		<li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: $index==selected}" ng-repeat="task in tasks">
+
+		<form ng-if="editing==$index" ng-submit="editTask(task)">
+			<input ng-model="task.name" type="text" ng-style="{'background-color' : getColor(task.goal)}">
+			<span class="badge" style="float: right;">
+				<select ng-model="task.goal">
+					<option ng-repeat="goal in goals" ng-value="goal.name">{[{goal.name}]}</option>
+
+				</select>
+			</span>
+		</form>
+
+
+		<div ng-if="editing!=$index">
 			{[{task.name}]}
-			<span class="badge">
+			<span class="badge" style="float: right;">
 				{[{task.goal}]}
 			</span>
+		</div>
 		</li>
 		<li class="list-group-item" ng-style="{'background-color' : getColor(goal_name)}">
 	

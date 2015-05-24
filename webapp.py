@@ -57,6 +57,11 @@ class User(db.Model):
                         Task.goal_id.in_(
                             map(lambda x: x.id, 
                                 self.get_goals()))).all()
+    def get_task_by(self, field, key):
+        return filter(lambda x: getattr(x, field)==key, self.get_tasks())
+
+    def get_goal_by(self, kwargs):
+        return Goal.query.filter_by(user_id=self.id,**kwargs).all()
 
 class History(db.Model):
     __tablename__ = 'history'
@@ -75,6 +80,7 @@ class Goal(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user = db.relationship('User',
         backref=db.backref('posts', lazy='dynamic'))
+
 
 
 class Task(db.Model):
@@ -144,29 +150,38 @@ def post_task():
     tid = request.json.get('tid')
     name = request.json.get('name')
     goalname = request.json.get('goal')
-
     if name is None or goalname is None:
         abort(400)    # missing arguments
 
-    # if this is an edit look for appropriate task
-    if tid and (tid not in map(lambda x: x.id, g.user.get_tasks())): 
-        abort(400)    # invalid tid
-
-    if goalname and (goalname not in map(lambda x: x.name, g.user.get_goals())):
-        abort(400)    # invalid goal
+    goal = g.user.get_goal_by({'name':goalname})
     
-    if filter(lambda x: x.name == name, g.user.get_tasks()):
-        abort(400)    # existing task
+    if not goal:
+        abort(400)    # invalid goal
+    assert len(goal) == 1
+    goal = goal[0]
+    
+    # if this is an edit look for appropriate task
+    if tid:
+        t = g.user.get_task_by('id',tid)
+        assert len(t) == 1
+        t = t[0]
 
-    t = Task(name=name, goal_id=Goal.query.filter_by(name=goalname).first().id)
+    elif g.user.get_task_by('name',name):
+        abort(400) #existing task
+    else:
+        t = Task()
+    t.name = name
+    t.goal_id = goal.id
+
     db.session.add(t)
     db.session.commit()
+
     return jsonify({'status': SUCCESS})
 
 @app.route('/api/v1/goals', methods=['GET'])
 @auth.login_required
 def get_goals():
-    goals = [{'name': t.name ,'weight' : t.weight} for t in g.user.get_goals()]
+    goals = [{'name': t.name ,'weight' : t.weight, 'gid' : t.id} for t in g.user.get_goals()]
     return jsonify({'goals': goals})
 
 @app.route('/api/v1/goals', methods=['POST'])
@@ -175,22 +190,28 @@ def post_goal():
     gid = request.json.get('gid')
     name = request.json.get('name')
     weight = request.json.get('weight')
-
     if name is None or weight is None:
         abort(400)    # missing arguments
 
-    # if this is an edit look for appropriate task
-    if gid and (gid not in map(lambda x: x.id, g.user.get_goals())): 
-        abort(400)    # invalid gid
-    
-    if filter(lambda x: x.name == name, g.user.get_goals()):
-        abort(400)    # existing goal
-    
-    t = Goal(name=name, weight=weight, user_id=g.user.id)
-    db.session.add(t)
-    db.session.commit()
-    return jsonify({'status': SUCCESS})
+    # if this is an edit look for appropriate goal
+    if gid:
+        goal = g.user.get_goal_by({'id':gid})
+        assert len(goal) == 1
+        goal = goal[0]
+    elif g.user.get_goal_by({'name':name}):
+        abort(400) #existing goal
+    else:
+        goal = Goal(user_id=g.user.id)
 
+
+    
+    goal.name = name
+    goal.weight = weight
+
+    db.session.add(goal)
+    db.session.commit()
+
+    return jsonify({'status': SUCCESS})
 @app.route('/api/v1/history', methods=['POST'])
 @auth.login_required
 def post_history():

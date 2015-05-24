@@ -57,8 +57,11 @@ class User(db.Model):
                         Task.goal_id.in_(
                             map(lambda x: x.id, 
                                 self.get_goals()))).all()
-    def get_task_by(self, field, key):
-        return filter(lambda x: getattr(x, field)==key, self.get_tasks())
+    def get_task_by(self, kwargs):
+        return Task.query.filter(
+                        Task.goal_id.in_(
+                            map(lambda x: x.id, 
+                                self.get_goals()))).filter_by(**kwargs).all()
 
     def get_goal_by(self, kwargs):
         return Goal.query.filter_by(user_id=self.id,**kwargs).all()
@@ -162,11 +165,11 @@ def post_task():
     
     # if this is an edit look for appropriate task
     if tid:
-        t = g.user.get_task_by('id',tid)
+        t = g.user.get_task_by({'id':tid})
         assert len(t) == 1
         t = t[0]
 
-    elif g.user.get_task_by('name',name):
+    elif g.user.get_task_by({'name':name}):
         abort(400) #existing task
     else:
         t = Task()

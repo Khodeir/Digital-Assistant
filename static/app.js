@@ -1,5 +1,5 @@
  // routes.js
-var app = angular.module('digitalAssistant', ['ui.router', 'base64', 'UserMgmt', 'ngTouch']);
+var app = angular.module('digitalAssistant', ['ui.router', 'base64', 'UserMgmt', 'ngTouch', 'chart.js']);
 
 
 app.run(function ($rootScope, $state, loginModal, Session) {
@@ -84,6 +84,12 @@ app.controller('TaskController',
   });
 app.controller('GoalController', 
   function ($scope, Goals){
+
+    $scope.labels =['THING 1','THING 2'];
+    $scope.data = [[100,50]];
+    $scope.onClick = function(points,evt,d){
+      console.log(points,evt,d);
+    };
     $scope.goals = [];
     $scope.selected = null;
     $scope.editing = null;
@@ -97,11 +103,16 @@ app.controller('GoalController',
         $scope.selected = i;
       }
 
-    }
+    };
     
     function getGoals(){
       Goals.get().success(function(data){
         $scope.goals = data.goals;
+
+        Z = data.goals.reduce(function(pv, cv) { return pv + cv.weight; }, 0)/100.0;
+        $scope.data = [data.goals.map(function(goal){return goal.weight/Z;})];
+        console.log(data);
+        $scope.labels = data.goals.map(function(goal){return goal.name;});
       });
     }
 

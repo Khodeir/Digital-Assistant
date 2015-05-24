@@ -1,0 +1,11 @@
+Flask==0.10.1
+Flask-HTTPAuth==2.5.0
+Flask-SQLAlchemy==2.0
+Jinja2==2.7.3
+MarkupSafe==0.23
+SQLAlchemy==1.0.4
+Werkzeug==0.10.4
+gnureadline==6.3.3
+itsdangerous==0.24
+passlib==1.6.2
+wsgiref==0.1.2

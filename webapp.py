@@ -7,6 +7,9 @@ from flask.ext.httpauth import HTTPBasicAuth
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
+from flask.ext.script import Manager
+from flask.ext.migrate import Migrate, MigrateCommand
+import sqlalchemy as sa
 
 # initialization
 app = Flask(__name__)
@@ -17,6 +20,9 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 # extensions
 db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
+migrate = Migrate(app, db)
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 
 # models
 class User(db.Model):
@@ -90,7 +96,8 @@ class Task(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), index=True)
-    done = db.Column(db.Boolean(), default=False)
+    done = db.Column(db.Boolean(), default=False, 
+        server_default=sa.sql.expression.false())
 
     goal_id = db.Column(db.Integer, db.ForeignKey('goals.id'))
     goal = db.relationship('Goal',
@@ -252,4 +259,4 @@ if __name__ == '__main__':
     # context = SSL.Context(SSL.SSLv23_METHOD)
     # context.use_privatekey_file('yourserver.key')
     # context.use_certificate_file('yourserver.crt')
-    app.run(debug=True)#, ssl_context=context)
+    manager.run()#, ssl_context=context)

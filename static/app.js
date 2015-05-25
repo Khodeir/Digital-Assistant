@@ -165,8 +165,8 @@ app.factory('Goals',function ($http) {
     };
 
     model.getColor = function (goalname){
-      var colors = ['blue','yellow','green','purple', 'black', 
-                      'beige', 'magenta', 'red', 'brown']
+      var colors = ['A200BF','00757F','FFCC00','0001CF', '00E526', 
+                      'BF7200', '7F0072', 'FFDC00', 'CF0007']
       var i = model.goal_index.indexOf(goalname);
   
       if(i == -1)

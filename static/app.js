@@ -73,7 +73,7 @@ app.controller('TaskController',
       });
     };
     $scope.editTask = function(task){
-      Tasks.add(task.name,task.goal,task.tid)
+      Tasks.add(task.name,task.goal,task.done,task.tid)
             .success(getTasks)
             .then(function (){
               $scope.editing = null;
@@ -144,8 +144,8 @@ app.service('Tasks',function ($http) {
       return $http.get('/api/v1/tasks');
       
     }
-    this.add = function (name,goal,tid) {
-      return $http.post('/api/v1/tasks',{'name':name, 'goal':goal,'tid':tid});
+    this.add = function (name,goal,done,tid) {
+      return $http.post('/api/v1/tasks',{'name':name, 'goal':goal,'done':done,'tid':tid});
     };
         
   });

@@ -1,7 +1,7 @@
 <div class="container">
 	<h3>Current Milestones</h3>
 	<ul class="list-group">
-		<li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: $index==selected}" ng-repeat="task in tasks">
+		<li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: $index==selected}" ng-repeat="task in tasks | filter:{'done':false}">
 
 		<form ng-if="editing==$index" ng-submit="editTask(task)">
 			<input ng-model="task.name" type="text" ng-style="{'background-color' : getColor(task.goal)}">
@@ -11,6 +11,7 @@
 
 				</select>
 			</span>
+			<input type="checkbox" ng-model="task.done">
 		</form>
 
 
@@ -36,6 +37,30 @@
 					<input style="display: none;" type="submit">
 			</form>
 
+		</li>
+	</ul>
+	<h3>Done Bucket</h3>
+	<ul class="list-group">
+		<li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: $index==selected}" ng-repeat="task in tasks | filter:{'done':true}">
+
+		<form ng-if="editing==$index" ng-submit="editTask(task)">
+			<input ng-model="task.name" type="text" ng-style="{'background-color' : getColor(task.goal)}">
+			<span class="badge" style="float: right;">
+				<select ng-model="task.goal">
+					<option ng-repeat="goal in goals" ng-value="goal.name">{[{goal.name}]}</option>
+
+				</select>
+			</span>
+			<input type="checkbox" ng-model="task.done">
+		</form>
+
+
+		<div ng-if="editing!=$index">
+			<s>{[{task.name}]}</s>
+			<span class="badge" style="float: right;">
+				{[{task.goal}]}
+			</span>
+		</div>
 		</li>
 	</ul>
 	

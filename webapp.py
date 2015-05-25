@@ -90,6 +90,7 @@ class Task(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), index=True)
+    done = db.Column(db.Boolean(), default=False)
 
     goal_id = db.Column(db.Integer, db.ForeignKey('goals.id'))
     goal = db.relationship('Goal',
@@ -148,7 +149,7 @@ def new_user():
 @app.route('/api/v1/tasks', methods=['GET'])
 @auth.login_required
 def get_tasks():
-    tasks = [{'tid': t.id, 'name': t.name ,'goal': t.goal.name} for t in g.user.get_tasks()]
+    tasks = [{'tid': t.id, 'name': t.name ,'goal': t.goal.name, 'done': t.done} for t in g.user.get_tasks()]
     return jsonify({'tasks': tasks})
 
 @app.route('/api/v1/tasks', methods=['POST'])
@@ -157,7 +158,9 @@ def post_task():
     tid = request.json.get('tid')
     name = request.json.get('name')
     goalname = request.json.get('goal')
-    if name is None or goalname is None:
+    done = request.json.get('done') or False
+
+    if name is None or goalname is None or done is None:
         abort(400)    # missing arguments
 
     goal = g.user.get_goal_by({'name':goalname})
@@ -179,6 +182,7 @@ def post_task():
         t = Task()
     t.name = name
     t.goal_id = goal.id
+    t.done = done
 
     db.session.add(t)
     db.session.commit()

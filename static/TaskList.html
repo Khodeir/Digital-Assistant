@@ -1,21 +1,20 @@
 <div class="container">
 	<h3>Current Milestones</h3>
 	<ul class="list-group">
-		<li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: $index==selected}" ng-repeat="task in tasks | filter:{'done':false}">
+		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: task===selected}" ng-repeat="task in tasks | filter:{'done':false}">
 
-		<form ng-if="editing==$index" ng-submit="editTask(task)">
+		<form ng-if="editing===task" ng-submit="editTask(task)">
 			<input ng-model="task.name" type="text" ng-style="{'background-color' : getColor(task.goal)}">
 			<span class="badge" style="float: right;">
 				<select ng-model="task.goal">
 					<option ng-repeat="goal in goals" ng-value="goal.name">{[{goal.name}]}</option>
-
 				</select>
 			</span>
-			<input type="checkbox" ng-model="task.done">
+			<input ng-change="editTask(task)" type="checkbox" ng-model="task.done">
 		</form>
 
 
-		<div ng-if="editing!=$index">
+		<div ng-if="editing!==task">
 			{[{task.name}]}
 			<span class="badge" style="float: right;">
 				{[{task.goal}]}
@@ -41,9 +40,9 @@
 	</ul>
 	<h3>Done Bucket</h3>
 	<ul class="list-group">
-		<li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: $index==selected}" ng-repeat="task in tasks | filter:{'done':true}">
+		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: task.tid==selected.tid}" ng-repeat="task in tasks | filter:{'done':true}">
 
-		<form ng-if="editing==$index" ng-submit="editTask(task)">
+		<form ng-if="editing===task" ng-submit="editTask(task)">
 			<input ng-model="task.name" type="text" ng-style="{'background-color' : getColor(task.goal)}">
 			<span class="badge" style="float: right;">
 				<select ng-model="task.goal">
@@ -51,11 +50,11 @@
 
 				</select>
 			</span>
-			<input type="checkbox" ng-model="task.done">
+			<input ng-change="editTask(task)" type="checkbox" ng-model="task.done">
 		</form>
 
 
-		<div ng-if="editing!=$index">
+		<div ng-if="editing!==task">
 			<s>{[{task.name}]}</s>
 			<span class="badge" style="float: right;">
 				{[{task.goal}]}

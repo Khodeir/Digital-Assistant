@@ -40,13 +40,13 @@ app.controller('TaskController',
     $scope.selected = null;
     $scope.editing = null;
 
-    $scope.selectRow = function (i){
-      if($scope.selected==i){
-        $scope.editing = i;
+    $scope.select = function (task){
+      if($scope.selected===task){
+        $scope.editing = task;
       }
       else{
         $scope.editing = null;
-        $scope.selected = i;
+        $scope.selected = task;
       }
     }
     

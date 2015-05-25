@@ -18,9 +18,11 @@ app.run(function ($rootScope, $state, loginModal, Session) {
             .catch(function () {
               return $state.go('welcome');
             });
+
+
+
           }
           else{
-            Session.user
             return $state.go(toState.name, toParams);
           }
 
@@ -230,8 +232,8 @@ app.config(function ($stateProvider, $urlRouterProvider,
 
     return {
       responseError: function (rejection) {
-        if (rejection.status !== 401) {
-          return rejection;
+        if (rejection.status !== 403 || !rejection.config.handleError) {
+          return $q.reject(rejection);
         }
 
         var deferred = $q.defer();

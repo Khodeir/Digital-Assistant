@@ -1,37 +1,47 @@
 app = angular.module('UserMgmt', ['ui.bootstrap', 'ngCookies']);
 
-app.service('Session', function ($cookieStore,$http,Base64,$rootScope) {
-  this.destroy = function () {
-    this.token = null;
+app.factory('Session', function ($cookieStore,$http,Base64,$rootScope) {
+  var object = {};
+  object.destroy = function () {
+    object.token = null;
     $cookieStore.remove('token');
     $cookieStore.remove('user12');
   };
-
-  this.create = function (user) {
-    this.token = user.token;
-    $rootScope.currentUser = user.user;
-    var authdata = Base64.encode(this.token + ':' + 'blah');
-    $http.defaults.headers.common['Authorization'] = 'Basic ' + authdata;
-
-    // save 
-    $cookieStore.put('token',this.token);
+  object.save = function () {
+    $cookieStore.put('token',object.token);
     $cookieStore.put('user12',$rootScope.currentUser);
   };
-  
-  this.load = function () {
-    this.create({'user':$cookieStore.get('user12'),
-                'token':$cookieStore.get('token')});
-  
-    // here is what i need to do -> 
-    return $http.post('/api/v1/token');
+
+  object.create = function (user) {
+    object.token = user.token;
+    $rootScope.currentUser = user.user;
+    var authdata = Base64.encode(object.token + ':' + 'blah');
+    $http.defaults.headers.common['Authorization'] = 'Basic ' + authdata;
+
+    return $http.post('/api/v1/token').success(function (data) {
+                        if(data.valid) {
+                          object.save();
+                        }
+                      });
   };
+
+
+  object.load = function () {
+    var user = $cookieStore.get('user');
+    var token = $cookieStore.get('token');
+    return object.create({'user':user,
+                'token':token});
+  };
+
+  return object;
 
 });
 
 app.service('loginModal', function ($modal, Session) {
 
+ 
   return function() {
-    var instance = $modal.open({
+     var instance  = $modal.open({
       templateUrl: '/static/LoginModal.html',
       controller: 'LoginModalCtrl',
       controllerAs: 'LoginModalCtrl'
@@ -59,10 +69,13 @@ app.factory('UsersApi', function ($http, $q, Base64, Session) {
             url:'/api/v1/token',
             method: 'GET',
             headers: {'Authorization': 'Basic ' + authdata},
+            handleError: false,
             transformResponse: appendTransform($http.defaults.transformResponse, 
               function(value) {
                 return value;
               })
+          }).error(function (data, status, headers, config) {
+            deferred.reject(data);
           }).success(function (data) {
             deferred.resolve(data);
           });
@@ -84,7 +97,7 @@ app.factory('UsersApi', function ($http, $q, Base64, Session) {
 // LoginModalCtrl.js
 
 app.controller('LoginModalCtrl', function ($scope, UsersApi) {
-
+  $scope.message = '';
   this.cancel = function(){
     $scope.$dismiss();
   };
@@ -92,6 +105,8 @@ app.controller('LoginModalCtrl', function ($scope, UsersApi) {
   this.submit = function (email, password) {
     UsersApi.login(email, password).then(function (user) {
       $scope.$close(user);
+    },function (data){
+      $scope.message = data;
     });
   };
 

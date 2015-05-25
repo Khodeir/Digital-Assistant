@@ -1,7 +1,7 @@
 SUCCESS = 'success'
 import os
 from datetime import datetime
-from flask import Flask, abort, request, jsonify, g, url_for, render_template
+from flask import Flask, abort, request, jsonify, g, url_for, render_template, make_response
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.httpauth import HTTPBasicAuth
 from passlib.apps import custom_app_context as pwd_context
@@ -103,11 +103,15 @@ def get_auth_token():
     token = g.user.generate_auth_token(600)
     return jsonify({'token': token.decode('ascii'), 'user':g.user.username,'duration': 600})
 
+@auth.error_handler
+def handle_unauth():
+    res = make_response("Unauthorized Access")
+    res.status_code = 403
+    return res
+
 @app.route('/api/v1/token', methods=['POST'])
 def verify_token():
     token = request.authorization['username']
-    print token
-
     valid = bool(User.verify_auth_token(token))
     return jsonify({'valid': valid})
 

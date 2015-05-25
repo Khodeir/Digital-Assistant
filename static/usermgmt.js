@@ -27,7 +27,7 @@ app.factory('Session', function ($cookieStore,$http,Base64,$rootScope) {
 
 
   object.load = function () {
-    var user = $cookieStore.get('user');
+    var user = $cookieStore.get('user12');
     var token = $cookieStore.get('token');
     return object.create({'user':user,
                 'token':token});

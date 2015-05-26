@@ -39,6 +39,37 @@ app.controller('TaskController',
     $scope.goals = [];
     $scope.selected = null;
     $scope.editing = null;
+    $scope.data = [
+    {
+      label: 'My First dataset',
+      strokeColor: '#F16220',
+      pointColor: '#F16220',
+      pointStrokeColor: '#fff',
+      data: [
+        { x: 19, y: 65 }, 
+        { x: 27, y: 59 }, 
+        { x: 28, y: 69 }, 
+        { x: 40, y: 81 },
+        { x: 48, y: 56 }
+      ]
+    },
+    {
+      label: 'My Second dataset',
+      strokeColor: '#007ACC',
+      pointColor: '#007ACC',
+      pointStrokeColor: '#fff',
+      data: [
+        { x: 19, y: 75 }, 
+        { x: 27, y: 69 }, 
+        { x: 28, y: 70 }, 
+        { x: 40, y: 31 },
+        { x: 48, y: 76 }, 
+        { x: 52, y: 23 }, 
+        { x: 24, y: 32 }
+      ]
+    }
+  ];
+    $scope.labels = ['hey','there'];
 
     $scope.select = function (task){
       if($scope.selected===task){

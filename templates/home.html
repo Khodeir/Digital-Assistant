@@ -12,6 +12,7 @@
   <script src="/static/usermgmt.js"></script>
   <script src="/static/base64.js"></script>
   <script src="/static/components/Chart.js/Chart.js"></script>
+  <script src="/static/components/Chart.Scatter.js/Chart.Scatter.js"></script>
   <script src="/static/components/angular-chart.js/dist/angular-chart.js"></script>
   <script src="/static/app.js"></script>
   <script src="/static/components/angular-ui-router/release/angular-ui-router.min.js"></script>
@@ -21,8 +22,11 @@
 
 </head>
 <body>
-<button ng-hide="!!$root.currentUser" class="btn-primary" ui-sref="app.tasks">Login</button>
-<button ng-show="!!$root.currentUser" class="btn-warning" ui-sref="welcome">Logout</button>
+<div class="container">
+  <button ng-hide="!!$root.currentUser" class="btn-primary" ui-sref="app.tasks">Login</button>
+  <button ng-show="!!$root.currentUser" class="btn-warning" ui-sref="welcome">Logout</button>
+
+</div>
 <div ui-view></div> 
 
 </body>

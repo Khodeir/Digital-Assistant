@@ -370,7 +370,7 @@
 				var current = dataSetPoints[i];
 
 				current.x = this.calculateX(current.arg);
-				current.y = this.calculateY(current.value, ease);
+				current.y = this.calculateY(current.value, current.ease||ease);
 			}
 		},
 
@@ -382,7 +382,11 @@
 
 			return this.chart.height - this.yPadding - ((y - this.yScaleRange.min) * (this.chart.height - this.yPadding - this.padding) / (this.yScaleRange.max - this.yScaleRange.min)) * (ease || 1);
 		},
-
+		convert : function (pos,ease) {
+			return {
+				x:this.xScaleRange.min + ((pos.x - this.xPadding)*(this.xScaleRange.max - this.xScaleRange.min))/(this.chart.width - this.xPadding - this.xPaddingRight),
+				y:this.yScaleRange.min - (((pos.y + this.yPadding-this.chart.height)*(this.yScaleRange.max - this.yScaleRange.min)*(ease||1))/(this.chart.height - this.yPadding - this.padding)),
+			};
 		draw: function () {
 
 			var ctx = this.chart.ctx, value, index;
@@ -605,10 +609,11 @@
 			this.points = [];
 		};
 
-		datasetCtr.prototype.addPoint = function(x, y) {
+		datasetCtr.prototype.addPoint = function(x, y, ease) {
 
 			var point = this._createNewPoint();
 			this._setPointData(point, x, y);
+			point.ease = ease;
 			this.points.push(point);
 		};
 
@@ -682,7 +687,7 @@
 
 			//Iterate through each of the datasets, and build this into a property of the chart
 			helpers.each(datasets, function (dataset) {
-
+				dataset = dataset.value;
 				var datasetObject = new chartjs.ScatterDataSet(dataset, this.options, this.chart, this.scale);
 
 				this.datasets.push(datasetObject);
@@ -691,31 +696,31 @@
 
 				helpers.each(dataset.data, function (dataPoint) {
 
-					datasetObject.addPoint(dataPoint.x, dataPoint.y);
+					datasetObject.addPoint(dataPoint.x, dataPoint.y, dataPoint.ease);
 				});
 
 			}, this);
 			
-			//Set up tooltip events on the chart
-			if (this.options.showTooltips) {
+			// //Set up tooltip events on the chart
+			// if (this.options.showTooltips) {
 
-				helpers.bindEvents(this, this.options.tooltipEvents, function (evt) {
+			// 	helpers.bindEvents(this, this.options.tooltipEvents, function (evt) {
 
-					var activePoints = (evt.type !== 'mouseout') ? this.getPointsAtEvent(evt) : [];
+			// 		var activePoints = (evt.type !== 'mouseout') ? this.getPointsAtEvent(evt) : [];
 
-					this._forEachPoint(function (point) {
+			// 		this._forEachPoint(function (point) {
 
-						point.restore(['fillColor', 'strokeColor']);
-					});
+			// 			point.restore(['fillColor', 'strokeColor']);
+			// 		});
 
-					helpers.each(activePoints, function (activePoint) {
+			// 		helpers.each(activePoints, function (activePoint) {
 
-						activePoint.fillColor = activePoint.highlightFill;
-						activePoint.strokeColor = activePoint.highlightStroke;
-					});
+			// 			activePoint.fillColor = activePoint.highlightFill;
+			// 			activePoint.strokeColor = activePoint.highlightStroke;
+			// 		});
 
-					this.showTooltip(activePoints);
-				});
+			// 		this.showTooltip(activePoints);
+			// 	});
 			}
 
 			var dataRange = this._calculateRange();
@@ -774,7 +779,7 @@
 
 		showTooltip: function (elements) {
 
-			this.draw();
+			// this.draw();
 
 			if (elements.length > 0) {
 
@@ -983,6 +988,7 @@
 		},
 
 		draw: function (ease) {
+			this.currentEase = ease;
 
 			if (this.hasData) {
 
@@ -1013,6 +1019,7 @@
 				if (this.options.pointDot) {
 
 					this._forEachPoint(function (point) { point.draw(); });
+					helpers.each(this.datasets, function (dataset){this.showTooltip(dataset.points);}, this);
 				}
 			} else {
 

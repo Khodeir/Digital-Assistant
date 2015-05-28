@@ -39,37 +39,7 @@ app.controller('TaskController',
     $scope.goals = [];
     $scope.selected = null;
     $scope.editing = null;
-    $scope.data = [
-    {
-      label: 'My First dataset',
-      strokeColor: '#F16220',
-      pointColor: '#F16220',
-      pointStrokeColor: '#fff',
-      data: [
-        { x: 19, y: 65 }, 
-        { x: 27, y: 59 }, 
-        { x: 28, y: 69 }, 
-        { x: 40, y: 81 },
-        { x: 48, y: 56 }
-      ]
-    },
-    {
-      label: 'My Second dataset',
-      strokeColor: '#007ACC',
-      pointColor: '#007ACC',
-      pointStrokeColor: '#fff',
-      data: [
-        { x: 19, y: 75 }, 
-        { x: 27, y: 69 }, 
-        { x: 28, y: 70 }, 
-        { x: 40, y: 31 },
-        { x: 48, y: 76 }, 
-        { x: 52, y: 23 }, 
-        { x: 24, y: 32 }
-      ]
-    }
-  ];
-    $scope.labels = ['hey','there'];
+
 
     $scope.select = function (task){
       if($scope.selected===task){
@@ -115,6 +85,116 @@ app.controller('TaskController',
     getTasks();
 
   });
+ app.controller('ChartController', function($scope){
+      $scope.chart = null;
+    $scope.chartjs = null;
+    $scope.$on('create',function(evt,chart,chartjs){
+    $scope.chart = chart;
+    $scope.chartjs=chartjs;
+    });
+
+    // chart
+    $scope.options = {showAnimation: false,tooltipTemplate: "<%=datasetLabel%>", tooltipFillColor:'rgba(0,0,0,0)',tooltipFontColor:'rgba(0,0,0,1)'};
+    var initial = $scope.data = [
+    {
+      label:'Neutral',
+      pointColor: 'silver',
+      data: [
+        { ease: 1, x: 0, y: 0 }, 
+
+      ]
+    },
+    {
+      label:'Happy',
+      pointColor: 'green',
+      data: [
+        { ease: 1, x: 10, y: 0 }, 
+
+      ]
+    },
+    {
+      label:'Unhappy',
+      pointColor: 'red',
+      data: [
+        { ease: 1, x: -10, y: 0 }, 
+
+      ]
+    },
+    {
+      label:'Intense',
+      pointColor: 'orange',
+      data: [
+        { ease: 1, x: 0, y: 10 }, 
+
+      ]
+    },
+    {
+      label:'Mild',
+      pointColor: 'purple',
+      data: [
+        { ease: 1, x: 0, y: -10 }, 
+
+      ]
+    },
+    {
+      label:'Depressed',
+      pointColor: 'black',
+      data: [
+        { ease: 1, x: -10, y: -10 }, 
+
+      ]
+    },
+    {
+      label:'Enraged',
+      pointColor: 'darkred',
+      data: [
+        { ease: 1, x: -10, y: 10 }, 
+
+      ]
+    },
+    {
+      label:'Ecstatic',
+      pointColor: 'darkgreen',
+      data: [
+        { ease: 1, x: 10, y: 10 }, 
+
+      ]
+    },
+    {
+      label:'Lazy',
+      pointColor: 'lightgreen',
+      data: [
+        { ease: 1, x: 10, y: -10 }, 
+
+      ]
+    }
+    
+  ];
+  function updateLabels(){
+    $scope.labels = $scope.data.map(function(e){return e.label;});
+  }
+  updateLabels();
+      $scope.onClick = function(points,evt){ 
+      var pos = $scope.chartjs.helpers.getRelativePosition(evt);
+      // chartjs.ScatterNum 
+      var coord = [$scope.chart.scale.convert(pos,$scope.chart.scale.currentEase)];
+
+      $scope.data = initial.concat([{
+          label:'You',
+          pointColor: 'black',
+          data: coord,
+        }]);
+      updateLabels();
+
+    };
+ });
+
+app.controller('HistoryController', function($scope){
+  $scope.timeslots = [{start:'00:00',task:''},{start:'01:00',task:''},{start:'02:00',task:''},{start:'03:00',task:''},{start:'04:00',task:''},{start:'05:00',task:''},{start:'06:00',task:''},{start:'07:00',task:''},{start:'08:00',task:''},{start:'09:00',task:''},{start:'10:00',task:''},{start:'11:00',task:''},{start:'12:00',task:''},{start:'13:00',task:''},{start:'14:00',task:''},{start:'15:00',task:''},{start:'16:00',task:''},{start:'17:00',task:''},{start:'18:00',task:''},{start:'19:00',task:''},{start:'20:00',task:''},{start:'21:00',task:''},{start:'22:00',task:''},{start:'23:00',task:''}];
+  $scope.today = 'Thursday'
+
+});
+
 app.controller('GoalController', 
   function ($scope, Goals){
 
@@ -144,7 +224,6 @@ app.controller('GoalController',
 
         Z = data.goals.reduce(function(pv, cv) { return pv + cv.weight; }, 0)/100.0;
         $scope.data = [data.goals.map(function(goal){return goal.weight/Z;})];
-        console.log(data);
         $scope.labels = data.goals.map(function(goal){return goal.name;});
       });
     }
@@ -201,7 +280,7 @@ app.factory('Goals',function ($http) {
       var i = model.goal_index.indexOf(goalname);
   
       if(i == -1)
-        return 'white';
+        return 'grey';
       return colors[i%colors.length];
     }
 
@@ -230,7 +309,7 @@ app.config(function ($stateProvider, $urlRouterProvider,
     .state('app',{
 
       abstract: true,
-      template: "<ui-view/>",
+      templateUrl: "/static/app.html",
       data: {
         requireLogin: true // this property will apply to all children of 'app'
       }

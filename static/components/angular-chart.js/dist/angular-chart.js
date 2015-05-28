@@ -174,7 +174,7 @@
         getData(scope.labels, scope.data, scope.colours);
       var options = angular.extend({}, ChartJs.getOptions(type), scope.options);
       var chart = new ChartJs.Chart(ctx)[type](data, options);
-      scope.$emit('create', chart);
+      scope.$emit('create', chart, ChartJs.Chart);
 
       ['hover', 'click'].forEach(function (action) {
         if (scope[action]) cvs[action === 'click' ? 'onclick' : 'onmousemove'] = getEventHandler(scope, chart, action);

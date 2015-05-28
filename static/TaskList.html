@@ -1,6 +1,13 @@
-  <canvas id="radar" class="chart chart-scatter" data="data"
-  labels="labels" click="onClick"></canvas>
-<div class="container">
+<div class="row">
+<div class="col-xs-12 col-s-12 col-md-offset-2 col-md-8 col-lg-offset-2 col-lg-8" ng-controller="ChartController">
+
+
+	<canvas class="chart chart-scatter" data="data" labels="labels" click="onClick" options="options">
+	</canvas>
+
+</div>
+</div>
+<div class="row">
 	<h3>Current Milestones</h3>
 	<ul class="list-group">
 		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: task===selected}" ng-repeat="task in tasks | filter:{'done':false}">

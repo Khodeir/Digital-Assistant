@@ -387,6 +387,7 @@
 				x:this.xScaleRange.min + ((pos.x - this.xPadding)*(this.xScaleRange.max - this.xScaleRange.min))/(this.chart.width - this.xPadding - this.xPaddingRight),
 				y:this.yScaleRange.min - (((pos.y + this.yPadding-this.chart.height)*(this.yScaleRange.max - this.yScaleRange.min)*(ease||1))/(this.chart.height - this.yPadding - this.padding)),
 			};
+		},
 		draw: function () {
 
 			var ctx = this.chart.ctx, value, index;
@@ -721,7 +722,7 @@
 
 			// 		this.showTooltip(activePoints);
 			// 	});
-			}
+			// }
 
 			var dataRange = this._calculateRange();
 			this.scale.setDataRange(dataRange);

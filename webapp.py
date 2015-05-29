@@ -58,6 +58,15 @@ class User(db.Model):
     def get_goals(self):
         return Goal.query.filter_by(user_id=self.id).all()
 
+    def get_history(self, since=None):
+
+        x = History.query.filter_by(user_id=self.id)
+        if since:
+            x = x.filter(History.time >= since)
+        return x.all()
+
+
+
     def get_tasks(self):
         return Task.query.filter(
                         Task.goal_id.in_(
@@ -72,13 +81,27 @@ class User(db.Model):
     def get_goal_by(self, kwargs):
         return Goal.query.filter_by(user_id=self.id,**kwargs).all()
 
+
+
 class History(db.Model):
     __tablename__ = 'history'
-    id = db.Column(db.Integer, primary_key=True)
-    time = db.Column(db.DateTime)
+
+    time = db.Column(db.DateTime, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'),primary_key=True)
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
     valence = db.Column(db.Float)
     intensity = db.Column(db.Float)
+    user = db.relationship('User',
+        backref=db.backref('history', lazy='dynamic'))
+    task = db.relationship('Task',
+        backref=db.backref('history', lazy='dynamic'))
+
+    def get_task(self):
+        return self.task or Task()
+
+    def get_dict(self):
+        return {'task' : self.get_task().get_dict(),'valence':self.valence, 
+        'intensity':self.intensity, 'time': self.time}
 
 class Goal(db.Model):
     __tablename__ = 'goals'
@@ -88,7 +111,10 @@ class Goal(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user = db.relationship('User',
-        backref=db.backref('posts', lazy='dynamic'))
+        backref=db.backref('goals', lazy='dynamic'))
+
+    def get_dict(self):
+        return {'name': self.name ,'weight' : self.weight, 'gid' : self.id}
 
 
 
@@ -101,8 +127,13 @@ class Task(db.Model):
 
     goal_id = db.Column(db.Integer, db.ForeignKey('goals.id'))
     goal = db.relationship('Goal',
-        backref=db.backref('posts', lazy='dynamic'))
+        backref=db.backref('tasks', lazy='dynamic'))
 
+    def get_goal(self):
+        return self.goal or Goal()
+
+    def get_dict(self):
+        return {'tid': self.id, 'name': self.name ,'goal': self.get_goal().name, 'done': self.done} 
 
 # routines 
 @app.route('/api/v1/token', methods=['GET'])
@@ -156,7 +187,7 @@ def new_user():
 @app.route('/api/v1/tasks', methods=['GET'])
 @auth.login_required
 def get_tasks():
-    tasks = [{'tid': t.id, 'name': t.name ,'goal': t.goal.name, 'done': t.done} for t in g.user.get_tasks()]
+    tasks = [t.get_dict() for t in g.user.get_tasks()]
     return jsonify({'tasks': tasks})
 
 @app.route('/api/v1/tasks', methods=['POST'])
@@ -199,7 +230,7 @@ def post_task():
 @app.route('/api/v1/goals', methods=['GET'])
 @auth.login_required
 def get_goals():
-    goals = [{'name': t.name ,'weight' : t.weight, 'gid' : t.id} for t in g.user.get_goals()]
+    goals = [t.get_dict() for t in g.user.get_goals()]
     return jsonify({'goals': goals})
 
 @app.route('/api/v1/goals', methods=['POST'])
@@ -235,16 +266,41 @@ def post_goal():
 def post_history():
     valence = request.json.get('valence')
     intensity = request.json.get('intensity')
-    task_id = request.json.get('task_id')
-    time = datetime.now()
+    task_id = request.json.get('tid') or None
+    time = request.json.get('time')
 
-    if task_id is None:
-        abort(400)    # missing arguments
-    
-    t = History(time=time, task_id=task_id,valence=valence,intensity=intensity)
+    if time:
+        time = datetime.strptime(time, "%a, %d %b %Y %H:%M:%S %Z")
+    else:
+        time = datetime.now()
+
+    t = History.query.filter_by(user_id=g.user.id, time=time).first() \
+        or History(user_id=g.user.id, time=time)
+
+    if valence:
+        t.valence = valence
+    if intensity:
+        t.intensity = intensity
+    if task_id:
+        t.task_id = task_id
+
     db.session.add(t)
     db.session.commit()
     return jsonify({'status': SUCCESS})
+
+@app.route('/api/v1/history', methods=['GET'])
+@auth.login_required
+def get_todayshistory():
+    date_string = request.args.get('day')
+    if date_string:
+        time = datetime.strptime(date_string, "%a, %d %b %Y %H:%M:%S %Z")
+        history_objects = g.user.get_history(since=time)
+    else:
+        history_objects = g.user.get_history()
+
+    history = [h.get_dict() for h in history_objects]
+
+    return jsonify({'history':history})
 
 
 @app.route('/')

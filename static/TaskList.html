@@ -28,6 +28,9 @@
 			<span class="badge" style="float: right;">
 				{[{task.goal}]}
 			</span>
+			<div style="border: 1;" ng-if="selected===task" ng-click="edit(task)">
+			<span class="glyphicon glyphicon-edit"></span>
+			</div>
 		</div>
 		</li>
 		<li class="list-group-item" ng-style="{'background-color' : getColor(goal_name)}">
@@ -68,6 +71,9 @@
 			<span class="badge" style="float: right;">
 				{[{task.goal}]}
 			</span>
+			<div style="border: 1;" ng-if="selected===task" ng-click="edit(task)">
+			<span class="glyphicon glyphicon-edit"></span>
+			</div>
 		</div>
 		</li>
 	</ul>

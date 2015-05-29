@@ -4,26 +4,24 @@
         <!-- Sidebar -->
         <div id="sidebar-wrapper" ng-controller="HistoryController">
             <div  class="sidebar-nav">
-    
-                <p class="sidebar-brand">
+            <div class="table-responsive">
+            <table  class="table table-bordered" style="margin-bottom: 0;">
+                <tbody>
 
-                        {[{today}]}
-
-                </p>
-            <table  border="1">
-
-                <tr ng-repeat="ts in timeslots">
-                    <td>
+                <tr ng-click="select($index)" ng-repeat="ts in timeslots" ng-class="{active: $index===selected}" >
+                    <td ng-style="{'background-color' : getColor(ts)}">
                     <a>{[{ts.start}]}
                     </a>
                     </td>
-                    <td>
-                        <a>: {[{ts.task}]}
+                    <td ng-style="{'background-color' : getTaskColor(ts.task)}">
+                        <a>{[{ts.task.name}]}
                     </a>
                     </td>
 
                 </tr>
+            </tbody>
             </table>
+        </div>
         </div>
         </div>
         <!-- /#sidebar-wrapper -->

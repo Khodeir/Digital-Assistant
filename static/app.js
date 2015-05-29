@@ -44,6 +44,7 @@ app.config(function ($stateProvider, $urlRouterProvider,
   $stateProvider
     .state('welcome', {
       url: '/',
+      template: '<button class="btn-primary" ui-sref="app.tasks">Login</button>',
       // abstract: true,
       // templateUrl: '/static/derp.html',
       // controller: 'LoginModalCtrl',

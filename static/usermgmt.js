@@ -89,6 +89,10 @@ app.factory('UsersApi', function ($http, $q, Base64, Session) {
   authService.isAuthorized = function () {
     return authService.isAuthenticated();
   };
+
+  authService.logout = function() {
+    Session.destroy();
+  };
  
   return authService;
 });

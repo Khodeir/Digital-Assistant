@@ -1,9 +1,11 @@
+<h3>Current Goals</h3>
 <div class="row">
-  <h3>Current Goals</h3>
-
+<div class="col-xs-12 col-s-12 col-md-offset-2 col-md-8 col-lg-offset-2 col-lg-8">
   <canvas id="radar" class="chart chart-radar" data="data"
   labels="labels" click="onClick"></canvas>
-
+</div>
+</div>
+<div class="row">
   <ul class="list-group">
     <li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : getColor(goal.name)}" ng-class="{selected: $index==selected}" ng-repeat="goal in goals">
 

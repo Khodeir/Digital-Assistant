@@ -1,4 +1,4 @@
-app.controller('MainController', function ($scope){
+app.controller('MainController', function ($rootScope,$scope,UsersApi){
 
   //History controller will also get new tasks
   $scope.$on('select_task', function(evt,task){
@@ -9,6 +9,10 @@ app.controller('MainController', function ($scope){
   $scope.$on('select_chart', function(evt,task){
     $scope.$broadcast('event_select_chart', task);
   });
+
+  $scope.logout = function(){
+    UsersApi.logout();
+  };
 });
 
 

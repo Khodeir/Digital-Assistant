@@ -199,6 +199,7 @@ app.controller('HistoryController', function($scope,History,Goals){
   };
 
   $scope.getTaskColor = function (task) {
+    if(!task) return 'grey';
     return Goals.getColor(task.goal);
   };
 

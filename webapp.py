@@ -282,7 +282,10 @@ def post_history():
     if intensity:
         t.intensity = intensity
     if task_id:
-        t.task_id = task_id
+        if task_id == 'RESET':
+            t.task_id = None
+        else:
+            t.task_id = task_id
 
     db.session.add(t)
     db.session.commit()

@@ -209,7 +209,8 @@ app.controller('HistoryController', function($scope,History,Goals){
   $scope.$on('event_select_task', function(evt,task) {
     var ts = $scope.timeslots[$scope.getTimeSlot()];
     ts.task = task;
-    History.add(null,null,ts.task.tid,ts.time.toUTCString());
+    var tid = (task && task.tid) || 'RESET';
+    History.add(null,null,tid,ts.time.toUTCString());
 
   });
 

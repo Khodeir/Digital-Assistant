@@ -89,7 +89,7 @@ app.config(function ($stateProvider, $urlRouterProvider,
 
     return {
       responseError: function (rejection) {
-        if (rejection.status !== 403 || !rejection.config.handleError) {
+        if (rejection.status !== 403 || rejection.config.handleError==false) {
           return $q.reject(rejection);
         }
 

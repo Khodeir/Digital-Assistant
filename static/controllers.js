@@ -244,10 +244,11 @@ app.controller('HistoryController', function($scope,History,Goals){
 });
 
 app.controller('GoalController', 
-  function ($scope, Goals){
+  function ($scope, Goals, History){
 
     $scope.labels =['THING 1','THING 2'];
     $scope.data = [[100,50]];
+    $scope.series = ['Hero'];
     $scope.onClick = function(points,evt,d){
       console.log(points,evt,d);
     };
@@ -265,14 +266,33 @@ app.controller('GoalController',
       }
 
     };
-    
+    function calcGoals(tlist){
+      var total = 0.0;
+      var tdat = $scope.labels.map(function (derp){return 0.0;});
+      for(var i = 0; i<tlist.length; i++){
+        total++;
+        tdat[$scope.labels.indexOf(tlist[i].task.goal)]++;
+      }
+      return tdat.map(function (elem){return 100.0*elem/total | 0;});
+
+    }
+    function getHistory(){
+      History.getBreakdown().then(function (data){
+        $scope.series.push('This Month'), $scope.data.push(calcGoals(data.month));
+        // $scope.series.push('This Week'), $scope.data.push(calcGoals(data.week));
+        $scope.series.push('Today'), $scope.data.push(calcGoals(data.day));
+      });
+    }
     function getGoals(){
       Goals.get().success(function(data){
         $scope.goals = data.goals;
 
         Z = data.goals.reduce(function(pv, cv) { return pv + cv.weight; }, 0)/100.0;
-        $scope.data = [data.goals.map(function(goal){return goal.weight/Z;})];
+        $scope.data = [data.goals.map(function(goal){return goal.weight/Z | 0;})];
+        $scope.series = ['Your Target'];
         $scope.labels = data.goals.map(function(goal){return goal.name;});
+
+        getHistory();
       });
     }
 

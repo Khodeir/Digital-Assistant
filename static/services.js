@@ -57,12 +57,43 @@ app.service('History', function ($http) {
     }
     return timeslots;
   };
-
-  this.getToday = function(){
+  this.get = function(date){
     return  $http({ url: '/api/v1/history',
                     method: "GET",
-                    params: {'day':today.toUTCString()}
+                    params: {'day':date}
                 });
+  };
+  this.getBreakdown = function (){
+    y = today.getFullYear(), m = today.getMonth();
+    var week = new Date(y, m, today.getDate() - today.getDay()+1);
+    var month = new Date(y, m, 1); // first day of month
+
+
+    return this.get(month.toUTCString()).then(function (data){
+      var bymonth = data.data.history;
+      var byweek = [];
+      var byday = [];
+      var t,d;
+      for(var i = 0; i < bymonth.length; i++){
+        t = bymonth[i];
+        d = new Date(t.time);
+        if (d > week){
+          byweek.push(t);
+        }
+        if (d > today){
+          byday.push(t);
+        }
+      }
+      return {'month':bymonth,'week':byweek,'day':byday};
+    });
+
+    console.log(today,week,month);
+
+    var month = new Date(week);
+    return [];
+  };
+  this.getToday = function(){
+    return  this.get(today.toUTCString());
   };
 
   this.add = function (valence,intensity,tid,time) {

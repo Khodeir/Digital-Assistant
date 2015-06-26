@@ -46,7 +46,7 @@ app.service('History', function ($http) {
   this.getTimeSlots = function(){
     var timeslots = [];
     // POPULATE TIMESLOT LIST.. PRETTY UGLY
-    var initial_hour = 8;
+    var initial_hour = 0;
     for(var i = 0; i<48; i++){
       var timeslot = new Date(today);
       timeslot.setHours(initial_hour+(i/2) | 0);

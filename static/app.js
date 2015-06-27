@@ -97,7 +97,8 @@ app.config(function ($stateProvider, $urlRouterProvider,
 
         loginModal()
           .then(function () {
-            deferred.resolve( $http(rejection.config) );
+            delete rejection.config.headers.Authorization;
+            deferred.resolve(  $http(rejection.config) );
           })
           .catch(function () {
             $state.go('welcome');

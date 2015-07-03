@@ -139,8 +139,8 @@ class Task(db.Model):
 @app.route('/api/v1/token', methods=['GET'])
 @auth.login_required
 def get_auth_token():
-    token = g.user.generate_auth_token(600)
-    return jsonify({'token': token.decode('ascii'), 'user':g.user.username,'duration': 600})
+    token = g.user.generate_auth_token(3600)
+    return jsonify({'token': token.decode('ascii'), 'user':g.user.username,'duration': 3600})
 
 @auth.error_handler
 def handle_unauth():

@@ -219,17 +219,15 @@ app.controller('HistoryController', function($scope,History,Goals){
     $scope.selected = index_1;
   };
 
-  $scope.getColor = function (timeslot){
-    if(timeslot.valence || timeslot.intensity){
+  $scope.getEmotionColor = function (timeslot){
+    if(timeslot.valence || timeslot.intensity)
       return 'lightblue';
-    }
     return 'grey';
   };
 
-  $scope.getTaskColor = function (task) {
-    if(!task) return 'grey';
-    var goal = $scope.getGoalById(task.goal)
-    return goal.color;
+  $scope.getTaskColor = function (timeslot) {
+    if(!timeslot.task) return 'grey';
+    return timeslot.goal.color;
   };
 
 
@@ -258,6 +256,8 @@ app.controller('HistoryController', function($scope,History,Goals){
     $scope.history.map(function(elem){
       var d = new Date(elem.time);
       var ts = $scope.timeslots[$scope.getTimeSlot(d)];
+
+      ts.goal = $scope.getGoalById(elem.task.goal);
       ts.task = elem.task;
       ts.valence = elem.valence;
       ts.intensity = elem.intensity;

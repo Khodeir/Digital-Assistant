@@ -10,12 +10,10 @@ app.service('Tasks',function ($http) {
 });
 app.service('TimeSheet',function ($http) {
     this.get = function (startdate, enddate, goals){
-
-      return $http.post('/api/v1/timesheet', {'startdate':startdate, 'enddate':enddate, 'goals':goals});
+      return $http.post('/api/v1/timesheet', {'startdate':startdate, 
+                                              'enddate':enddate, 
+                                              'goals':goals});
       
-    }
-    this.add = function (name,goal,done,tid) {
-      return $http.post('/api/v1/tasks',{'name':name, 'goal':goal,'done':done,'tid':tid});
     };
         
 });

@@ -8,12 +8,12 @@
             <table  class="table table-bordered" style="margin-bottom: 0;">
                 <tbody>
 
-                <tr ng-click="select($index)" ng-repeat="ts in timeslots" ng-class="{active: $index===selected}" >
-                    <td ng-style="{'background-color' : getColor(ts)}">
+                <tr ng-click="select($index)" ng-repeat="ts in timeslots" ng-class="{active: $index===selected}">
+                    <td ng-style="{'background-color' : getEmotionColor(ts)}">
                     <a>{[{ts.start}]}
                     </a>
                     </td>
-                    <td ng-style="{'background-color' : getTaskColor(ts.task)}">
+                    <td ng-style="{'background-color' : getTaskColor(ts)}">
                         <a>{[{ts.task.name}]}
                     </a>
                     </td>

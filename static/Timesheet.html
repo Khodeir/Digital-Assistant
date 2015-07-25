@@ -1,0 +1,49 @@
+<!-- <div class="row">
+<div class="col-xs-12 col-s-12 col-md-offset-2 col-md-8 col-lg-offset-2 col-lg-8" ng-controller="ChartController">
+
+
+	<canvas class="chart chart-scatter" data="data" labels="labels" click="onClick" options="options">
+	</canvas>
+
+</div>
+</div> -->
+<div class="row">
+	<input ng-model="startdate">
+	<input ng-model="enddate">
+	<input ng-model="selected_goals">
+	<button ng-click="updateTimeSheet()">
+</div>
+<div class="row" ng-repeat="(key,value) in timesheet | groupBy: 'goal_id'" ng-init="goal = getGoalById(key)">
+	<ul class="col-md-8 list-group">
+		<li class="task list-group-item" ng-style="{'background-color' : goal.color}" ng-repeat="task in value">
+
+		
+			{[{task.name}]}
+			<span class="badge" style="float: right;">
+				{[{goal.name}]}
+			</span>
+
+
+		</li>
+		
+	</ul>
+	<ul class="col-md-4 list-group">
+		<li class="list-group-item" ng-repeat="task in value">
+
+		
+			{[{task.time_spent/2}]} hours
+
+
+		</li>
+		<li class="list-group-item">
+
+		
+			Total: {[{(value | map: 'time_spent' | sum)/2}]} hours
+
+
+		</li>
+		
+	</ul>
+
+	
+</div>

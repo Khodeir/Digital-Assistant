@@ -7,10 +7,10 @@
 </div>
 <div class="row">
   <ul class="list-group">
-    <li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : getColor(goal.name)}" ng-class="{selected: $index==selected}" ng-repeat="goal in goals">
+    <li ng-click="selectRow($index)" class="task list-group-item" ng-style="{'background-color' : goal.color}" ng-class="{selected: $index==selected}" ng-repeat="goal in goals">
 
     <form ng-if="editing==$index" ng-submit="editGoal(goal)" ng-keyup="$event.keyCode == 13 && editGoal(goal)">
-      <input ng-model="goal.name" type="text" ng-style="{'background-color' : getColor(goal.name)}">
+      <input ng-model="goal.name" type="text" ng-style="{'background-color' : goal.color}">
       
       <span class="badge" style="float: right; color: black;">
             <input type="number" ng-model="goal.weight">

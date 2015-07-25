@@ -1,5 +1,5 @@
  // routes.js
-var app = angular.module('digitalAssistant', ['ui.router', 'base64', 'UserMgmt', 'ngTouch', 'chart.js']);
+var app = angular.module('digitalAssistant', ['ui.router', 'base64', 'UserMgmt', 'ngTouch', 'chart.js', 'angular.filter']);
 
 
 app.run(function ($rootScope, $state, loginModal, Session) {
@@ -74,6 +74,13 @@ app.config(function ($stateProvider, $urlRouterProvider,
       url: '/goals',
       templateUrl: '/static/GoalList.html',
       controller: 'GoalController',
+    })
+    .state('app.timesheet', {
+      // child state of `app`
+      // requireLogin === true
+      url: '/timesheet',
+      templateUrl: '/static/Timesheet.html',
+      controller: 'TimesheetController',
     });
 
     $httpProvider.interceptors.push(function ($timeout, $q, $injector) {

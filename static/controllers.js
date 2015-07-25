@@ -1,4 +1,4 @@
-app.controller('MainController', function ($rootScope,$scope,UsersApi){
+app.controller('MainController', function ($rootScope,$scope,Goals,UsersApi){
 
   //History controller will also get new tasks
   $scope.$on('select_task', function(evt,task){
@@ -9,13 +9,46 @@ app.controller('MainController', function ($rootScope,$scope,UsersApi){
   $scope.$on('select_chart', function(evt,task){
     $scope.$broadcast('event_select_chart', task);
   });
-
+  $scope.goals = [];
+  var goalIndex = {};
   $scope.logout = function(){
     UsersApi.logout();
   };
+  $scope.getGoals = function(){
+      return Goals.get().success(function(){
+        $scope.goals = Goals.list;
+        var len = $scope.goals.length;
+        for(var index = 0; index<len; index++){
+          var goal = $scope.goals[index];
+          goalIndex[goal.gid] = goal;
+        }
+      });
+    }
+
+  $scope.getGoals();
+
+  $scope.getGoalById = function(gid){
+    return goalIndex[gid];
+  };
+
 });
 
+app.controller('TimesheetController', 
+  function($scope, $rootScope, Goals, TimeSheet){
 
+    $scope.startdate = '';
+    $scope.enddate = '';
+    $scope.timesheet = [];
+    $scope.selected_goals = [];
+
+    $scope.updateTimeSheet = function(){
+      TimeSheet.get($scope.startdate, $scope.enddate, $scope.selected_goals)
+                .success(function(data){$scope.timesheet = data.timesheet;
+                });
+    };
+
+    
+});
 app.controller('TaskController', 
   function ($scope, $rootScope, Tasks, Goals){
     $scope.tasks = [];
@@ -41,15 +74,7 @@ app.controller('TaskController',
       });
     }
 
-    function getGoals(){
-      Goals.get().success(function(data){
-        $scope.goals = data.goals;
-      });
-    }
-
     
-    $scope.getColor = Goals.getColor;
-
     $scope.addTask = function (t,g){
       Tasks.add(t,g).success(function(){
         getTasks();
@@ -65,7 +90,6 @@ app.controller('TaskController',
             });
     };
 
-    getGoals();
     getTasks();
 
   });
@@ -204,7 +228,8 @@ app.controller('HistoryController', function($scope,History,Goals){
 
   $scope.getTaskColor = function (task) {
     if(!task) return 'grey';
-    return Goals.getColor(task.goal);
+    var goal = $scope.getGoalById(task.goal)
+    return goal.color;
   };
 
 
@@ -252,10 +277,9 @@ app.controller('GoalController',
     $scope.onClick = function(points,evt,d){
       console.log(points,evt,d);
     };
-    $scope.goals = [];
     $scope.selected = null;
     $scope.editing = null;
-
+    var label_index = {};
     $scope.selectRow = function (i){
       if($scope.selected==i){
         $scope.editing = i;
@@ -271,7 +295,7 @@ app.controller('GoalController',
       var tdat = $scope.labels.map(function (derp){return 0.0;});
       for(var i = 0; i<tlist.length; i++){
         total++;
-        tdat[$scope.labels.indexOf(tlist[i].task.goal)]++;
+        tdat[label_index[tlist[i].task.goal]]++;
       }
       return tdat.map(function (elem){return 100.0*elem/total | 0;});
 
@@ -283,14 +307,16 @@ app.controller('GoalController',
         $scope.series.push('Today'), $scope.data.push(calcGoals(data.day));
       });
     }
-    function getGoals(){
-      Goals.get().success(function(data){
-        $scope.goals = data.goals;
-
+    function processGoals(){
+      $scope.getGoals().success(function(data){
         Z = data.goals.reduce(function(pv, cv) { return pv + cv.weight; }, 0)/100.0;
         $scope.data = [data.goals.map(function(goal){return goal.weight/Z | 0;})];
         $scope.series = ['Your Target'];
-        $scope.labels = data.goals.map(function(goal){return goal.name;});
+        $scope.labels = data.goals.map(
+            function(goal,index){
+              label_index[goal.gid] = index;
+              return goal.name;
+            });
 
         getHistory();
       });
@@ -298,22 +324,20 @@ app.controller('GoalController',
 
     $scope.addGoal = function (name,weight){
       Goals.add(name,weight).success(function(){
-        getGoals();
+        $scope.getGoals();
         $scope.goal_name = '';
         $scope.goal_weight = '';
       });
     };
     $scope.editGoal = function(goal){
       Goals.add(goal.name,goal.weight,goal.gid)
-            .success(getGoals)
+            .success($scope.getGoals)
             .then(function (){
               $scope.editing = null;
             });
     };
 
-    getGoals();
+    processGoals();
 
-    
-    $scope.getColor = Goals.getColor;
 
   });

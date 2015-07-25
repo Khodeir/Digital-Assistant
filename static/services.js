@@ -8,30 +8,42 @@ app.service('Tasks',function ($http) {
     };
         
 });
+app.service('TimeSheet',function ($http) {
+    this.get = function (startdate, enddate, goals){
+
+      return $http.post('/api/v1/timesheet', {'startdate':startdate, 'enddate':enddate, 'goals':goals});
+      
+    }
+    this.add = function (name,goal,done,tid) {
+      return $http.post('/api/v1/tasks',{'name':name, 'goal':goal,'done':done,'tid':tid});
+    };
+        
+});
 app.factory('Goals',function ($http) {
   model = {};
-    model.goal_index = [];
+    model.list = [];
+
     model.get = function (){
-      return $http.get('/api/v1/goals').success(function(data){
-        model.goal_index = data.goals.map(function(element){
-          return element.name; });
-      });
+      var colors = ['A200BF','00757F','FFCC00','0001CF', '00E526', 
+                'BF7200', '7F0072', 'FFDC00', 'CF0007'];
       
-    };
+      return $http.get('/api/v1/goals').success(function(data){
+        
+        model.list = [];
+        
+        for(var index = 0; index<data.goals.length; index++){
+          var goal = data.goals[index];
+          goal.color = colors[index%colors.length];
+          model.list.push(goal);
+        }
+       
+      
+      });
+    }
 
     model.add = function (name,weight,gid) {
       return $http.post('/api/v1/goals',{'name':name, 'weight':weight,'gid':gid});
     };
-
-    model.getColor = function (goalname){
-      var colors = ['A200BF','00757F','FFCC00','0001CF', '00E526', 
-                      'BF7200', '7F0072', 'FFDC00', 'CF0007']
-      var i = model.goal_index.indexOf(goalname);
-  
-      if(i == -1)
-        return 'grey';
-      return colors[i%colors.length];
-    }
 
     return model;
         

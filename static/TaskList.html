@@ -10,10 +10,11 @@
 <div class="row">
 	<h3>Current Milestones</h3>
 	<ul class="list-group">
-		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: task===selected}" ng-repeat="task in tasks | filter:{'done':false}">
+		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : task_goal.color}" ng-class="{selected: task===selected}" ng-repeat="task in tasks | filter:{'done':false}" ng-init="task_goal = getGoalById(task.goal)">
+
 
 		<form ng-if="editing===task" ng-submit="editTask(task)">
-			<input ng-model="task.name" type="text" ng-style="{'background-color' : getColor(task.goal)}">
+			<input ng-model="task.name" type="text" ng-style="{'background-color' : task_goal.color}">
 			<span class="badge" style="float: right;">
 				<select ng-model="task.goal">
 					<option ng-repeat="goal in goals" ng-value="goal.name">{[{goal.name}]}</option>
@@ -26,7 +27,7 @@
 		<div ng-if="editing!==task">
 			{[{task.name}]}
 			<span class="badge" style="float: right;">
-				{[{task.goal}]}
+				{[{task_goal.name}]}
 			</span>
 			<div style="border: 1;" ng-if="selected===task" ng-click="edit(task)">
 			<span class="glyphicon glyphicon-edit"></span>
@@ -52,10 +53,10 @@
 	</ul>
 	<h3>Done Bucket</h3>
 	<ul class="list-group">
-		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: task.tid==selected.tid}" ng-repeat="task in tasks | filter:{'done':true}">
+		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : task_goal.color}" ng-class="{selected: task.tid==selected.tid}" ng-repeat="task in tasks | filter:{'done':true}" ng-init="task_goal = getGoalById(task.goal)">
 
 		<form ng-if="editing===task" ng-submit="editTask(task)">
-			<input ng-model="task.name" type="text" ng-style="{'background-color' : getColor(task.goal)}">
+			<input ng-model="task.name" type="text" ng-style="{'background-color' : task_goal.color}">
 			<span class="badge" style="float: right;">
 				<select ng-model="task.goal">
 					<option ng-repeat="goal in goals" ng-value="goal.name">{[{goal.name}]}</option>
@@ -69,7 +70,7 @@
 		<div ng-if="editing!==task">
 			<s>{[{task.name}]}</s>
 			<span class="badge" style="float: right;">
-				{[{task.goal}]}
+				{[{task_goal.name}]}
 			</span>
 			<div style="border: 1;" ng-if="selected===task" ng-click="edit(task)">
 			<span class="glyphicon glyphicon-edit"></span>

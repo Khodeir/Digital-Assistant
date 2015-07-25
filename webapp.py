@@ -103,6 +103,10 @@ class History(db.Model):
         return {'task' : self.get_task().get_dict(),'valence':self.valence, 
         'intensity':self.intensity, 'time': self.time}
 
+    @classmethod
+    def between(cls, startdate, enddate):
+        return cls.query.filter(cls.time > startdate, cls.time < enddate)
+
 class Goal(db.Model):
     __tablename__ = 'goals'
     id = db.Column(db.Integer, primary_key=True)
@@ -133,7 +137,7 @@ class Task(db.Model):
         return self.goal or Goal()
 
     def get_dict(self):
-        return {'tid': self.id, 'name': self.name ,'goal': self.get_goal().name, 'done': self.done} 
+        return {'tid': self.id, 'name': self.name ,'goal': self.get_goal().id, 'done': self.done} 
 
 # routines 
 @app.route('/api/v1/token', methods=['GET'])
@@ -304,6 +308,35 @@ def get_todayshistory():
     history = [h.get_dict() for h in history_objects]
 
     return jsonify({'history':history})
+
+@app.route('/api/v1/timesheet', methods=['POST'])
+@auth.login_required
+def get_timesheet():
+    startdate = request.json.get('startdate')
+    enddate = request.json.get('enddate')
+
+    relevant_history = History.query.filter_by(user_id=g.user.id)
+
+    if startdate or enddate:
+        startdate = datetime.strptime(startdate, "%Y-%m-%d")
+        enddate = datetime.strptime(enddate, "%Y-%m-%d")
+
+        relevant_history = relevant_history.between(startdate, enddate)
+
+    goal_id_list = request.json.get('goals')
+
+    joined = relevant_history.join(Task)
+
+    if goal_id_list:
+        joined = joined.filter(Task.goal_id.in_(goal_id_list))
+
+    result = [{'tid':tid, 'name':name, 'goal_id':goal_id, 'time_spent':count}
+                for (tid, name, goal_id, count) \
+                    in joined.group_by(Task.id)\
+                            .values(Task.id, Task.name, 
+                                    Task.goal_id, sa.func.count(History.time))]
+
+    return jsonify({'timesheet':result})
 
 
 @app.route('/')

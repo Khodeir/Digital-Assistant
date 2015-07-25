@@ -179,11 +179,11 @@ app.controller('HistoryController', function($scope,History,Goals){
 
   $scope.timeslots = History.getTimeSlots();
   $scope.getTimeSlot = function getTimeslot(now){
-    if(!now && $scope.selected) return $scope.selected;
-    var now = now || new Date;
+    if(!now && ($scope.selected!=null)) return $scope.selected;
+    now = now == null ? new Date() : now;
     for (var i = 0; i < $scope.timeslots.length; i++){
       if ($scope.timeslots[i].time > now){
-        return i-1;
+        return i;
       }
     }
     return -1;

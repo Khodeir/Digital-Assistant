@@ -38,19 +38,16 @@ app.factory('Goals',function ($http) {
 });
 
 app.service('History', function ($http) {
-  var today = new Date;
-  today.setHours(0);
-  today.setMinutes(0);
-  today.setSeconds(0);
-  today.setMilliseconds(0);
+  var today = new Date();
+  today.setHours(0,0,0,0);
   this.getTimeSlots = function(){
     var timeslots = [];
     // POPULATE TIMESLOT LIST.. PRETTY UGLY
-    var initial_hour = 0;
+
     for(var i = 0; i<48; i++){
-      var timeslot = new Date(today);
-      timeslot.setHours(initial_hour+(i/2) | 0);
-      if (i % 2 != 0) timeslot.setMinutes(30);
+      var timeslot = new Date();
+      timeslot.setHours( ((i/2) | 0), (i%2 == 0 ? 0 : 30) , 0 );
+
       timeslots.push({'time':timeslot, 
                             'start':timeslot.toTimeString().slice(0,5),
                             'task':''});

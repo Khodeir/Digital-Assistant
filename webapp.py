@@ -314,16 +314,17 @@ def get_todayshistory():
 def get_timesheet():
     startdate = request.json.get('startdate')
     enddate = request.json.get('enddate')
+    goal_id_list = request.json.get('goals')
 
     relevant_history = History.query.filter_by(user_id=g.user.id)
 
-    if startdate or enddate:
+    if startdate:
         startdate = datetime.strptime(startdate, "%Y-%m-%d")
+        relevant_history = relevant_history.filter(History.time>startdate)
+    
+    if enddate:
         enddate = datetime.strptime(enddate, "%Y-%m-%d")
-
-        relevant_history = relevant_history.between(startdate, enddate)
-
-    goal_id_list = request.json.get('goals')
+        relevant_history = relevant_history.filter(History.time<enddate)
 
     joined = relevant_history.join(Task)
 

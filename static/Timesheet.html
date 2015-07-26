@@ -7,11 +7,17 @@
 
 </div>
 </div> -->
+
 <div class="row">
-	<input ng-model="startdate">
-	<input ng-model="enddate">
-	<input ng-model="selected_goals">
-	<button ng-click="updateTimeSheet()">
+	<input type="text" datepicker-popup ng-click="datepicker_start_isopen = true;" ng-model="startdate" is-open="datepicker_start_isopen" close-text="Close" />
+	<input type="text" datepicker-popup ng-click="datepicker_end_isopen = true;" ng-model="enddate" is-open="datepicker_end_isopen" close-text="Close" />
+
+	<span class="badge">
+		<select multiple ng-model="selected_goals" style="background-color: inherit;" ng-options="goal.gid as goal.name for goal in goals">
+
+		</select>
+	</span>
+	<button ng-click="updateTimeSheet()">Fetch</button>
 </div>
 <div class="row" ng-repeat="(key,value) in timesheet | groupBy: 'goal_id'" ng-init="goal = getGoalById(key)">
 	<ul class="col-md-8 list-group">

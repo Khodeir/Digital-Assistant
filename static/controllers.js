@@ -77,6 +77,7 @@ app.controller('TaskController',
     
     function getTasks(){
       Tasks.get().success(function(data) {
+        $scope.tasks = [];
         for(var i = 0; i < data.tasks.length; i++){
           var task = data.tasks[i];
           task.goal = $scope.getGoalById(task.goal);

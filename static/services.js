@@ -3,16 +3,20 @@ app.service('Tasks',function ($http) {
       return $http.get('/api/v1/tasks');
       
     }
-    this.add = function (name,goal,done,tid) {
-      return $http.post('/api/v1/tasks',{'name':name, 'goal':goal,'done':done,'tid':tid});
+    this.add = function (task) {
+      return $http.post('/api/v1/tasks',{'name':task.name, 
+                                         'goal':task.goal.gid,
+                                         'done':task.done,
+                                         'tid':task.tid});
     };
         
 });
 app.service('TimeSheet',function ($http) {
     this.get = function (startdate, enddate, goals){
-      return $http.post('/api/v1/timesheet', {'startdate':startdate, 
-                                              'enddate':enddate, 
-                                              'goals':goals});
+      return $http.post('/api/v1/timesheet', 
+                    {'startdate':startdate ? startdate.toUTCString() : null, 
+                     'enddate':enddate ? enddate.toUTCString() : null, 
+                     'goals':goals});
       
     };
         
@@ -39,8 +43,10 @@ app.factory('Goals',function ($http) {
       });
     }
 
-    model.add = function (name,weight,gid) {
-      return $http.post('/api/v1/goals',{'name':name, 'weight':weight,'gid':gid});
+    model.add = function (goal) {
+      return $http.post('/api/v1/goals',{'name':goal.name, 
+                                         'weight':goal.weight,
+                                         'gid':goal.gid});
     };
 
     return model;
@@ -103,7 +109,10 @@ app.service('History', function ($http) {
     return  this.get(today.toUTCString());
   };
 
-  this.add = function (valence,intensity,tid,time) {
-    return $http.post('/api/v1/history',{'valence':valence, 'intensity':intensity,'tid':tid,'time':time});
+  this.add = function (history) {
+    return $http.post('/api/v1/history',{'valence':history.valence,
+                                         'intensity':history.intensity,
+                                         'tid':history.task.tid,
+                                         'time':history.time.toUTCString()});
   };
 });

@@ -24,6 +24,11 @@ migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
+# helpers
+
+def datetime_from_utcstring(date_string):
+    return datetime.strptime(date_string, "%a, %d %b %Y %H:%M:%S %Z")
+
 # models
 class User(db.Model):
     __tablename__ = 'users'
@@ -199,13 +204,13 @@ def get_tasks():
 def post_task():
     tid = request.json.get('tid')
     name = request.json.get('name')
-    goalname = request.json.get('goal')
+    goal_id = request.json.get('goal')
     done = request.json.get('done') or False
 
-    if name is None or goalname is None or done is None:
+    if name is None or goal_id is None or done is None:
         abort(400)    # missing arguments
 
-    goal = g.user.get_goal_by({'name':goalname})
+    goal = g.user.get_goal_by({'id':goal_id})
     
     if not goal:
         abort(400)    # invalid goal
@@ -274,7 +279,7 @@ def post_history():
     time = request.json.get('time')
 
     if time:
-        time = datetime.strptime(time, "%a, %d %b %Y %H:%M:%S %Z")
+        time = datetime_from_utcstring(time)
     else:
         time = datetime.now()
 
@@ -300,7 +305,7 @@ def post_history():
 def get_todayshistory():
     date_string = request.args.get('day')
     if date_string:
-        time = datetime.strptime(date_string, "%a, %d %b %Y %H:%M:%S %Z")
+        time = datetime_from_utcstring(date_string)
         history_objects = g.user.get_history(since=time)
     else:
         history_objects = g.user.get_history()
@@ -319,11 +324,11 @@ def get_timesheet():
     relevant_history = History.query.filter_by(user_id=g.user.id)
 
     if startdate:
-        startdate = datetime.strptime(startdate, "%Y-%m-%d")
+        startdate = datetime_from_utcstring(startdate)
         relevant_history = relevant_history.filter(History.time>startdate)
     
     if enddate:
-        enddate = datetime.strptime(enddate, "%Y-%m-%d")
+        enddate = datetime_from_utcstring(enddate)
         relevant_history = relevant_history.filter(History.time<enddate)
 
     joined = relevant_history.join(Task)

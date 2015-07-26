@@ -22,6 +22,8 @@ app.controller('MainController', function ($rootScope,$scope,Goals,UsersApi){
           var goal = $scope.goals[index];
           goalIndex[goal.gid] = goal;
         }
+
+        $scope.$broadcast('goals_retrieved');
       });
     }
 
@@ -34,16 +36,21 @@ app.controller('MainController', function ($rootScope,$scope,Goals,UsersApi){
 });
 
 app.controller('TimesheetController', 
-  function($scope, $rootScope, Goals, TimeSheet){
+  function($scope, $rootScope, TimeSheet){
 
     $scope.startdate = '';
     $scope.enddate = '';
     $scope.timesheet = [];
     $scope.selected_goals = [];
+    $scope.datepicker_start_isopen = false;
+    $scope.datepicker_end_isopen = false;
 
     $scope.updateTimeSheet = function(){
-      TimeSheet.get($scope.startdate, $scope.enddate, $scope.selected_goals)
-                .success(function(data){$scope.timesheet = data.timesheet;
+      TimeSheet.get($scope.startdate, 
+                    $scope.enddate, 
+                    $scope.selected_goals)
+                .success(function(data){
+                  $scope.timesheet = data.timesheet;
                 });
     };
 
@@ -52,9 +59,9 @@ app.controller('TimesheetController',
 app.controller('TaskController', 
   function ($scope, $rootScope, Tasks, Goals){
     $scope.tasks = [];
-    $scope.goals = [];
     $scope.selected = null;
     $scope.editing = null;
+    $scope.new_task = {};
 
     $scope.select = function (task){
       if($scope.selected!==task){
@@ -70,27 +77,35 @@ app.controller('TaskController',
     
     function getTasks(){
       Tasks.get().success(function(data) {
-        $scope.tasks = data.tasks;
+        for(var i = 0; i < data.tasks.length; i++){
+          var task = data.tasks[i];
+          task.goal = $scope.getGoalById(task.goal);
+          $scope.tasks.push(task);
+        }
       });
     }
 
     
-    $scope.addTask = function (t,g){
-      Tasks.add(t,g).success(function(){
+    $scope.addTask = function (new_task){
+
+      Tasks.add(new_task).success(function(){
         getTasks();
-        $scope.task_name = '';
-        $scope.goal_name = '';
+        $scope.new_task = {};
       });
     };
     $scope.editTask = function(task){
-      Tasks.add(task.name,task.goal,task.done,task.tid)
+      Tasks.add(task)
             .success(getTasks)
             .then(function (){
               $scope.editing = null;
             });
     };
+    $scope.$on('goals_retrieved', getTasks);
 
-    getTasks();
+    // if the maincontroller is already loaded
+    if($scope.goals){
+      getTasks();
+    }
 
   });
 app.controller('ChartController', function($scope){
@@ -227,17 +242,13 @@ app.controller('HistoryController', function($scope,History,Goals){
 
   $scope.getTaskColor = function (timeslot) {
     if(!timeslot.task) return 'grey';
-    return timeslot.goal.color;
+    return timeslot.task.goal.color;
   };
-
-
- 
 
   $scope.$on('event_select_task', function(evt,task) {
     var ts = $scope.timeslots[$scope.getTimeSlot()];
     ts.task = task;
-    var tid = (task && task.tid) || 'RESET';
-    History.add(null,null,tid,ts.time.toUTCString());
+    History.add(ts);
 
   });
 
@@ -245,25 +256,29 @@ app.controller('HistoryController', function($scope,History,Goals){
     var ts = $scope.timeslots[$scope.getTimeSlot()];
     ts.valence = pos.x;
     ts.intensity = pos.y;
-    History.add(ts.valence,ts.intensity,null,ts.time.toUTCString());
-
+    History.add(ts);
   });
 
-  History.getToday().success(function(data){
+  $scope.$on('goals_retrieved', function() {
+    History.getToday().success(function(data){
 
-    $scope.history = data.history;
+      $scope.history = data.history;
 
-    $scope.history.map(function(elem){
-      var d = new Date(elem.time);
-      var ts = $scope.timeslots[$scope.getTimeSlot(d)];
+      $scope.history.map(function(elem){
+        var d = new Date(elem.time);
+        // timeslots are assigned at the beginning
+        var ts = $scope.timeslots[$scope.getTimeSlot(d)];
+        // needs goals to be loaded
+        ts.task = elem.task;
+        ts.task.goal = $scope.getGoalById(elem.task.goal);
+        ts.valence = elem.valence;
+        ts.intensity = elem.intensity;
 
-      ts.goal = $scope.getGoalById(elem.task.goal);
-      ts.task = elem.task;
-      ts.valence = elem.valence;
-      ts.intensity = elem.intensity;
-
+      });
     });
   });
+
+
 
 
 });
@@ -274,6 +289,7 @@ app.controller('GoalController',
     $scope.labels =['THING 1','THING 2'];
     $scope.data = [[100,50]];
     $scope.series = ['Hero'];
+    $scope.new_goal = {};
     $scope.onClick = function(points,evt,d){
       console.log(points,evt,d);
     };
@@ -322,16 +338,16 @@ app.controller('GoalController',
       });
     }
 
-    $scope.addGoal = function (name,weight){
-      Goals.add(name,weight).success(function(){
-        $scope.getGoals();
-        $scope.goal_name = '';
-        $scope.goal_weight = '';
+    $scope.addGoal = function (goal){
+
+      Goals.add(goal).success(function(){
+        processGoals();
+        $scope.new_goal = {};
       });
     };
     $scope.editGoal = function(goal){
-      Goals.add(goal.name,goal.weight,goal.gid)
-            .success($scope.getGoals)
+      Goals.add(goal)
+            .success(processGoals)
             .then(function (){
               $scope.editing = null;
             });

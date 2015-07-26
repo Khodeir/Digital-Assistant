@@ -112,7 +112,7 @@ app.service('History', function ($http) {
   this.add = function (history) {
     return $http.post('/api/v1/history',{'valence':history.valence,
                                          'intensity':history.intensity,
-                                         'tid':history.task.tid,
+                                         'tid':history.task ? history.task.tid : 'RESET',
                                          'time':history.time.toUTCString()});
   };
 });

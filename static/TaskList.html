@@ -10,7 +10,8 @@
 <div class="row">
 	<h3>Current Milestones</h3>
 	<ul class="list-group">
-		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : task.goal.color}" ng-class="{selected: task===selected}" ng-repeat="task in tasks | filter:{'done':false}" >
+	    <div ng-repeat="(key,value) in tasks | groupBy: 'goal.gid'">
+		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : task.goal.color}" ng-class="{selected: task===selected}" ng-repeat="task in value | filter:{'done':false}" >
 
 
 		<form ng-if="editing===task" ng-submit="editTask(task)">
@@ -34,8 +35,9 @@
 			</div>
 		</div>
 		</li>
+		</div>
 		<li ng-click="select()" class="list-group-item" ng-style="{'background-color' : new_task.goal.color}">
-	
+
 			<form ng-submit="addTask(new_task)">
 				<input type="text" ng-model="new_task.name" class="task_input" style="background-color : inherit;">
 				<span class="badge" style="float: right;">
@@ -77,5 +79,5 @@
 		</div>
 		</li>
 	</ul>
-	
+
 </div>

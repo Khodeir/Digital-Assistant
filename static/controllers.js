@@ -5,10 +5,6 @@ app.controller('MainController', function ($rootScope,$scope,Goals,UsersApi){
     $scope.$broadcast('event_select_task', task);
   });
 
-  //History controller will also get new tasks
-  $scope.$on('select_chart', function(evt,task){
-    $scope.$broadcast('event_select_chart', task);
-  });
   $scope.goals = [];
   var goalIndex = {};
   $scope.logout = function(){
@@ -109,111 +105,6 @@ app.controller('TaskController',
     }
 
   });
-app.controller('ChartController', function($scope){
-    $scope.chart = null;
-    $scope.chartjs = null;
-    $scope.$on('create',function(evt,chart,chartjs){
-    $scope.chart = chart;
-    $scope.chartjs=chartjs;
-    });
-
-    // chart
-    $scope.options = {showAnimation: false,tooltipTemplate: "<%=datasetLabel%>", tooltipFillColor:'rgba(0,0,0,0)',tooltipFontColor:'rgba(0,0,0,1)'};
-    var initial = $scope.data = [
-      {
-        label:'Neutral',
-        pointColor: 'silver',
-        data: [
-          { ease: 1, x: 0, y: 0 }, 
-
-        ]
-      },
-      {
-        label:'Happy',
-        pointColor: 'green',
-        data: [
-          { ease: 1, x: 10, y: 0 }, 
-
-        ]
-      },
-      {
-        label:'Unhappy',
-        pointColor: 'red',
-        data: [
-          { ease: 1, x: -10, y: 0 }, 
-
-        ]
-      },
-      {
-        label:'Intense',
-        pointColor: 'orange',
-        data: [
-          { ease: 1, x: 0, y: 10 }, 
-
-        ]
-      },
-      {
-        label:'Mild',
-        pointColor: 'purple',
-        data: [
-          { ease: 1, x: 0, y: -10 }, 
-
-        ]
-      },
-      {
-        label:'Depressed',
-        pointColor: 'black',
-        data: [
-          { ease: 1, x: -10, y: -10 }, 
-
-        ]
-      },
-      {
-        label:'Enraged',
-        pointColor: 'darkred',
-        data: [
-          { ease: 1, x: -10, y: 10 }, 
-
-        ]
-      },
-      {
-        label:'Ecstatic',
-        pointColor: 'darkgreen',
-        data: [
-          { ease: 1, x: 10, y: 10 }, 
-
-        ]
-      },
-      {
-        label:'Lazy',
-        pointColor: 'lightgreen',
-        data: [
-          { ease: 1, x: 10, y: -10 }, 
-
-        ]
-      }
-    
-    ];
-    function updateLabels(){
-      $scope.labels = $scope.data.map(function(e){return e.label;});
-    }
-    updateLabels();
-    $scope.onClick = function(points,evt){ 
-      var pos = $scope.chartjs.helpers.getRelativePosition(evt);
-      // chartjs.ScatterNum 
-      var coord = [$scope.chart.scale.convert(pos,$scope.chart.scale.currentEase)];
-
-      $scope.data = initial.concat([{
-          label:'You',
-          pointColor: 'black',
-          data: coord,
-        }]);
-      updateLabels();
-
-      $scope.$emit('select_chart', coord[0]);
-
-    };
- });
 
 app.controller('HistoryController', function($scope,History,Goals){
 
@@ -236,8 +127,6 @@ app.controller('HistoryController', function($scope,History,Goals){
   };
 
   $scope.getEmotionColor = function (timeslot){
-    if(timeslot.valence || timeslot.intensity)
-      return 'lightblue';
     return 'grey';
   };
 
@@ -253,12 +142,6 @@ app.controller('HistoryController', function($scope,History,Goals){
 
   });
 
-  $scope.$on('event_select_chart', function(evt,pos) {
-    var ts = $scope.timeslots[$scope.getTimeSlot()];
-    ts.valence = pos.x;
-    ts.intensity = pos.y;
-    History.add(ts);
-  });
 
   $scope.$on('goals_retrieved', function() {
     History.getToday().success(function(data){

@@ -9,6 +9,9 @@ app.service('Tasks',function ($http) {
                                          'done':task.done,
                                          'tid':task.tid});
     };
+    this.delete = function (task) {
+      return $http.delete('api/v1/tasks', {'data':{'tid':task.tid}});
+    };
         
 });
 app.service('TimeSheet',function ($http) {

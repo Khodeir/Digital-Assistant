@@ -97,6 +97,14 @@ app.controller('TaskController',
               $scope.editing = null;
             });
     };
+    $scope.deleteTask = function(task){
+      if(confirm('Really delete ' + task.name + '?'))
+      Tasks.delete(task)
+            .success(getTasks)
+            .then(function (){
+              $scope.editing = null;
+            });
+    };
     $scope.$on('goals_retrieved', getTasks);
 
     // if the maincontroller is already loaded

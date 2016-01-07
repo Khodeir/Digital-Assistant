@@ -72,16 +72,17 @@ class User(db.Model):
 
 
 
-    def get_tasks(self):
-        return Task.query.filter(
+    def get_tasks(self,raw=False):
+        raw = Task.query.filter(
+                        Task.deleted==False,
                         Task.goal_id.in_(
                             map(lambda x: x.id, 
-                                self.get_goals()))).all()
+                                self.get_goals())))
+        if raw:
+            return raw
+        return raw.all()
     def get_task_by(self, kwargs):
-        return Task.query.filter(
-                        Task.goal_id.in_(
-                            map(lambda x: x.id, 
-                                self.get_goals()))).filter_by(**kwargs).all()
+        return self.get_tasks(raw=True).filter_by(**kwargs).all()
 
     def get_goal_by(self, kwargs):
         return Goal.query.filter_by(user_id=self.id,**kwargs).all()
@@ -92,14 +93,14 @@ class History(db.Model):
     __tablename__ = 'history'
 
     time = db.Column(db.DateTime, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'),primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
     valence = db.Column(db.Float)
     intensity = db.Column(db.Float)
     user = db.relationship('User',
-        backref=db.backref('history', lazy='dynamic'))
+        backref=db.backref('history', lazy='dynamic'), cascade='all, delete-orphan', single_parent=True)
     task = db.relationship('Task',
-        backref=db.backref('history', lazy='dynamic'))
+        backref=db.backref('history', lazy='dynamic'), cascade='all, delete-orphan', single_parent=True)
 
     def get_task(self):
         return self.task or Task()
@@ -120,7 +121,7 @@ class Goal(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user = db.relationship('User',
-        backref=db.backref('goals', lazy='dynamic'))
+        backref=db.backref('goals', lazy='dynamic'), cascade='all, delete-orphan', single_parent=True)
 
     def get_dict(self):
         return {'name': self.name ,'weight' : self.weight, 'gid' : self.id}
@@ -133,10 +134,14 @@ class Task(db.Model):
     name = db.Column(db.String(128), index=True)
     done = db.Column(db.Boolean(), default=False, 
         server_default=sa.sql.expression.false())
+    deleted = db.Column(db.Boolean(), default=False, 
+        server_default=sa.sql.expression.false())
 
     goal_id = db.Column(db.Integer, db.ForeignKey('goals.id'))
     goal = db.relationship('Goal',
-        backref=db.backref('tasks', lazy='dynamic'))
+        backref=db.backref('tasks', lazy='dynamic'),  cascade='all, delete-orphan', single_parent=True)
+
+
 
     def get_goal(self):
         return self.goal or Goal()
@@ -231,6 +236,25 @@ def post_task():
     t.goal_id = goal.id
     t.done = done
 
+    db.session.add(t)
+    db.session.commit()
+
+    return jsonify({'status': SUCCESS})
+
+@app.route('/api/v1/tasks', methods=['DELETE'])
+@auth.login_required
+def delete_task():
+    import json
+    tid = json.loads(request.data).get('tid')
+
+    if tid is None:
+        abort(400)    # missing arguments
+
+    t = g.user.get_task_by({'id':tid})
+    assert len(t) == 1
+    t = t[0]
+
+    t.deleted = True
     db.session.add(t)
     db.session.commit()
 

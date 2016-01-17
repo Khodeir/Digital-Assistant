@@ -24,10 +24,11 @@
                     </a>
                     </td>
                     <td ng-style="{'background-color' : getTaskColor(ts)}">
-                        <a>{[{ts.task.name}]}
-                    </a>
-                    </td>
+                        <div class="task" ng-if="ts.task">
+                        {[{ts.task.name}]}<span style="float:right;"  ng-click="addHistory()" class="glyphicon glyphicon-remove"></span>
+                        </div>
 
+                    </td>
                 </tr>
             </tbody>
             </table>

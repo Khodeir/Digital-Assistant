@@ -98,9 +98,9 @@ class History(db.Model):
     valence = db.Column(db.Float)
     intensity = db.Column(db.Float)
     user = db.relationship('User',
-        backref=db.backref('history', lazy='dynamic'), cascade='all, delete-orphan', single_parent=True)
+        backref=db.backref('history', lazy='dynamic'))
     task = db.relationship('Task',
-        backref=db.backref('history', lazy='dynamic'), cascade='all, delete-orphan', single_parent=True)
+        backref=db.backref('history', lazy='dynamic'))
 
     def get_task(self):
         return self.task or Task()
@@ -121,7 +121,7 @@ class Goal(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user = db.relationship('User',
-        backref=db.backref('goals', lazy='dynamic'), cascade='all, delete-orphan', single_parent=True)
+        backref=db.backref('goals', lazy='dynamic'))
 
     def get_dict(self):
         return {'name': self.name ,'weight' : self.weight, 'gid' : self.id}
@@ -139,7 +139,7 @@ class Task(db.Model):
 
     goal_id = db.Column(db.Integer, db.ForeignKey('goals.id'))
     goal = db.relationship('Goal',
-        backref=db.backref('tasks', lazy='dynamic'),  cascade='all, delete-orphan', single_parent=True)
+        backref=db.backref('tasks', lazy='dynamic'))
 
 
 
@@ -299,29 +299,35 @@ def post_goal():
 def post_history():
     valence = request.json.get('valence')
     intensity = request.json.get('intensity')
-    task_id = request.json.get('tid') or None
+    task_id = request.json.get('tid')
     time = request.json.get('time')
+
+    if task_id is None:
+        abort(400)    # missing arguments
 
     if time:
         time = datetime_from_utcstring(time)
     else:
         time = datetime.now()
 
-    t = History.query.filter_by(user_id=g.user.id, time=time).first() \
-        or History(user_id=g.user.id, time=time)
+    t = History.query.filter_by(user_id=g.user.id, time=time).first()
+    if task_id == 'RESET':
 
-    if valence:
-        t.valence = valence
-    if intensity:
-        t.intensity = intensity
-    if task_id:
-        if task_id == 'RESET':
-            t.task_id = None
-        else:
-            t.task_id = task_id
+        db.session.delete(t)
+        db.session.commit()      
+        
+    else:
+        t = History(user_id=g.user.id, time=time)
 
-    db.session.add(t)
-    db.session.commit()
+        if valence:
+            t.valence = valence
+        if intensity:
+            t.intensity = intensity
+
+        t.task_id = task_id
+        db.session.add(t)
+        db.session.commit()
+
     return jsonify({'status': SUCCESS})
 
 @app.route('/api/v1/history', methods=['GET'])

@@ -4,9 +4,9 @@
 	    <div ng-repeat="(key,value) in tasks | groupBy: 'goal.gid'">
 		<li class="task list-group-item" ng-style="{'background-color' : task.goal.color}" ng-class="{selected: task===selected}" ng-repeat="task in value | filter:{'done':false}" >
 
-		<div ng-if="editing===task">
+		<div ng-click="select(task)" ng-if="editing===task">
 		<form ng-submit="editTask(task)">
-			<input ng-model="task.name" type="text" style="background-color: inherit;">
+			<input ng-model="task.name" type="text" style="background-color: inherit; width:80%;">
 			<span class="badge" style="float: right;">
 				<select ng-model="task.goal" style="background-color: inherit;" ng-options="goal as goal.name for goal in goals">
 
@@ -28,7 +28,7 @@
 		</div>
 		</li>
 		</div>
-		<li ng-click="select()" class="list-group-item" ng-style="{'background-color' : new_task.goal.color}">
+		<li class="list-group-item" ng-style="{'background-color' : new_task.goal.color}">
 
 			<form ng-submit="addTask(new_task)">
 				<input type="text" ng-model="new_task.name" class="task_input" style="background-color : inherit;">
@@ -50,7 +50,7 @@
 		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : task.goal.color}" ng-class="{selected: task.tid==selected.tid}" ng-repeat="task in tasks | filter:{'done':true}">
 
 		<form ng-if="editing===task" ng-submit="editTask(task)">
-			<input ng-model="task.name" type="text" style="background-color: inherit;">
+			<input ng-model="task.name" type="text" style="background-color: inherit; width:80%;">
 			<span class="badge" style="float: right;">
 				<select ng-model="task.goal" style="background-color: inherit;" ng-options="goal as goal.name for goal in goals">
 

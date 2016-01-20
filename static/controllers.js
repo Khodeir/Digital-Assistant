@@ -142,8 +142,10 @@ app.controller('HistoryController', function($scope,History,Goals){
     if(!timeslot.task) return 'grey';
     return timeslot.task.goal.color;
   };
-  $scope.addHistory = function (task) {
-    var ts = $scope.timeslots[$scope.getTimeSlot()];
+  $scope.addHistory = function (task, ts) {
+    if(ts == null){
+      ts = $scope.timeslots[$scope.getTimeSlot()];
+    }
     ts.task = task;
     History.add(ts);
   };

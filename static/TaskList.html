@@ -2,9 +2,9 @@
 	<h3>Current Milestones</h3>
 	<ul class="list-group">
 	    <div ng-repeat="(key,value) in tasks | groupBy: 'goal.gid'">
-		<li class="task list-group-item" ng-style="{'background-color' : task.goal.color}" ng-class="{selected: task===selected}" ng-repeat="task in value | filter:{'done':false}" >
+		<li class="task list-group-item" ng-style="{'background-color' : task.goal.color}" ng-class="{selected: task===selected}" ng-repeat="task in value | filter:{'done':false}" ng-click="select(task)">
 
-		<div ng-click="select(task)" ng-if="editing===task">
+		<div ng-if="editing===task">
 		<form ng-submit="editTask(task)">
 			<input ng-model="task.name" type="text" style="background-color: inherit; width:80%;">
 			<span class="badge" style="float: right;">
@@ -17,7 +17,7 @@
 		<span class="glyphicon glyphicon-remove" ng-click="deleteTask(task)"></span>
 		</div>
 
-		<div ng-click="select(task)" ng-if="editing!==task">
+		<div ng-if="editing!==task">
 			{[{task.name}]}
 			<span class="badge" style="float: right;">
 				{[{task.goal.name}]}

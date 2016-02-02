@@ -29,8 +29,8 @@ app.factory('Goals',function ($http) {
     model.list = [];
 
     model.get = function (){
-      var colors = ['A200BF','00757F','FFCC00','0001CF', '00E526', 
-                'BF7200', '7F0072', 'FFDC00', 'CF0007'];
+      var colors = ['A200BF','00757F','806600','0001CF', '00E526', 
+                'BF7200', '7F0072', 'ff9933', 'CF0007'];
       
       return $http.get('/api/v1/goals').success(function(data){
         

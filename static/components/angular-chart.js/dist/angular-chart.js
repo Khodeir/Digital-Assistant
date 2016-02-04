@@ -35,7 +35,8 @@
     .directive('chartRadar', ['ChartJsFactory', function (ChartJsFactory) { return new ChartJsFactory('Radar'); }])
     .directive('chartDoughnut', ['ChartJsFactory', function (ChartJsFactory) { return new ChartJsFactory('Doughnut'); }])
     .directive('chartPie', ['ChartJsFactory', function (ChartJsFactory) { return new ChartJsFactory('Pie'); }])
-    .directive('chartPolarArea', ['ChartJsFactory', function (ChartJsFactory) { return new ChartJsFactory('PolarArea'); }]);
+    .directive('chartPolarArea', ['ChartJsFactory', function (ChartJsFactory) { return new ChartJsFactory('PolarArea'); }])
+    .directive('chartScatter', ['ChartJsFactory', function (ChartJsFactory) { return new ChartJsFactory('Scatter'); }]);
 
   /**
    * Wrapper for chart.js
@@ -173,7 +174,7 @@
         getData(scope.labels, scope.data, scope.colours);
       var options = angular.extend({}, ChartJs.getOptions(type), scope.options);
       var chart = new ChartJs.Chart(ctx)[type](data, options);
-      scope.$emit('create', chart);
+      scope.$emit('create', chart, ChartJs.Chart);
 
       ['hover', 'click'].forEach(function (action) {
         if (scope[action]) cvs[action === 'click' ? 'onclick' : 'onmousemove'] = getEventHandler(scope, chart, action);

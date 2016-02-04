@@ -24,6 +24,11 @@ migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
+# helpers
+
+def datetime_from_utcstring(date_string):
+    return datetime.strptime(date_string, "%a, %d %b %Y %H:%M:%S %Z")
+
 # models
 class User(db.Model):
     __tablename__ = 'users'
@@ -58,27 +63,55 @@ class User(db.Model):
     def get_goals(self):
         return Goal.query.filter_by(user_id=self.id).all()
 
-    def get_tasks(self):
-        return Task.query.filter(
+    def get_history(self, since=None):
+
+        x = History.query.filter_by(user_id=self.id)
+        if since:
+            x = x.filter(History.time >= since)
+        return x.all()
+
+
+
+    def get_tasks(self,raw=False):
+        raw = Task.query.filter(
+                        Task.deleted==False,
                         Task.goal_id.in_(
                             map(lambda x: x.id, 
-                                self.get_goals()))).all()
+                                self.get_goals())))
+        if raw:
+            return raw
+        return raw.all()
     def get_task_by(self, kwargs):
-        return Task.query.filter(
-                        Task.goal_id.in_(
-                            map(lambda x: x.id, 
-                                self.get_goals()))).filter_by(**kwargs).all()
+        return self.get_tasks(raw=True).filter_by(**kwargs).all()
 
     def get_goal_by(self, kwargs):
         return Goal.query.filter_by(user_id=self.id,**kwargs).all()
 
+
+
 class History(db.Model):
     __tablename__ = 'history'
-    id = db.Column(db.Integer, primary_key=True)
-    time = db.Column(db.DateTime)
+
+    time = db.Column(db.DateTime, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
     valence = db.Column(db.Float)
     intensity = db.Column(db.Float)
+    user = db.relationship('User',
+        backref=db.backref('history', lazy='dynamic'))
+    task = db.relationship('Task',
+        backref=db.backref('history', lazy='dynamic'))
+
+    def get_task(self):
+        return self.task or Task()
+
+    def get_dict(self):
+        return {'task' : self.get_task().get_dict(),'valence':self.valence, 
+        'intensity':self.intensity, 'time': self.time}
+
+    @classmethod
+    def between(cls, startdate, enddate):
+        return cls.query.filter(cls.time > startdate, cls.time < enddate)
 
 class Goal(db.Model):
     __tablename__ = 'goals'
@@ -88,7 +121,10 @@ class Goal(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user = db.relationship('User',
-        backref=db.backref('posts', lazy='dynamic'))
+        backref=db.backref('goals', lazy='dynamic'))
+
+    def get_dict(self):
+        return {'name': self.name ,'weight' : self.weight, 'gid' : self.id}
 
 
 
@@ -98,18 +134,27 @@ class Task(db.Model):
     name = db.Column(db.String(128), index=True)
     done = db.Column(db.Boolean(), default=False, 
         server_default=sa.sql.expression.false())
+    deleted = db.Column(db.Boolean(), default=False, 
+        server_default=sa.sql.expression.false())
 
     goal_id = db.Column(db.Integer, db.ForeignKey('goals.id'))
     goal = db.relationship('Goal',
-        backref=db.backref('posts', lazy='dynamic'))
+        backref=db.backref('tasks', lazy='dynamic'))
 
+
+
+    def get_goal(self):
+        return self.goal or Goal()
+
+    def get_dict(self):
+        return {'tid': self.id, 'name': self.name ,'goal': self.get_goal().id, 'done': self.done} 
 
 # routines 
 @app.route('/api/v1/token', methods=['GET'])
 @auth.login_required
 def get_auth_token():
-    token = g.user.generate_auth_token(600)
-    return jsonify({'token': token.decode('ascii'), 'user':g.user.username,'duration': 600})
+    token = g.user.generate_auth_token(3600)
+    return jsonify({'token': token.decode('ascii'), 'user':g.user.username,'duration': 3600})
 
 @auth.error_handler
 def handle_unauth():
@@ -156,7 +201,7 @@ def new_user():
 @app.route('/api/v1/tasks', methods=['GET'])
 @auth.login_required
 def get_tasks():
-    tasks = [{'tid': t.id, 'name': t.name ,'goal': t.goal.name, 'done': t.done} for t in g.user.get_tasks()]
+    tasks = [t.get_dict() for t in g.user.get_tasks()]
     return jsonify({'tasks': tasks})
 
 @app.route('/api/v1/tasks', methods=['POST'])
@@ -164,13 +209,13 @@ def get_tasks():
 def post_task():
     tid = request.json.get('tid')
     name = request.json.get('name')
-    goalname = request.json.get('goal')
+    goal_id = request.json.get('goal')
     done = request.json.get('done') or False
 
-    if name is None or goalname is None or done is None:
+    if name is None or goal_id is None or done is None:
         abort(400)    # missing arguments
 
-    goal = g.user.get_goal_by({'name':goalname})
+    goal = g.user.get_goal_by({'id':goal_id})
     
     if not goal:
         abort(400)    # invalid goal
@@ -196,10 +241,29 @@ def post_task():
 
     return jsonify({'status': SUCCESS})
 
+@app.route('/api/v1/tasks', methods=['DELETE'])
+@auth.login_required
+def delete_task():
+    import json
+    tid = json.loads(request.data).get('tid')
+
+    if tid is None:
+        abort(400)    # missing arguments
+
+    t = g.user.get_task_by({'id':tid})
+    assert len(t) == 1
+    t = t[0]
+
+    t.deleted = True
+    db.session.add(t)
+    db.session.commit()
+
+    return jsonify({'status': SUCCESS})
+
 @app.route('/api/v1/goals', methods=['GET'])
 @auth.login_required
 def get_goals():
-    goals = [{'name': t.name ,'weight' : t.weight, 'gid' : t.id} for t in g.user.get_goals()]
+    goals = [t.get_dict() for t in g.user.get_goals()]
     return jsonify({'goals': goals})
 
 @app.route('/api/v1/goals', methods=['POST'])
@@ -235,16 +299,80 @@ def post_goal():
 def post_history():
     valence = request.json.get('valence')
     intensity = request.json.get('intensity')
-    task_id = request.json.get('task_id')
-    time = datetime.now()
+    task_id = request.json.get('tid')
+    time = request.json.get('time')
 
     if task_id is None:
         abort(400)    # missing arguments
-    
-    t = History(time=time, task_id=task_id,valence=valence,intensity=intensity)
-    db.session.add(t)
-    db.session.commit()
+
+    if time:
+        time = datetime_from_utcstring(time)
+    else:
+        time = datetime.now()
+
+    t = History.query.filter_by(user_id=g.user.id, time=time).first()
+    if task_id == 'RESET':
+
+        db.session.delete(t)
+        db.session.commit()      
+        
+    else:
+        t = History(user_id=g.user.id, time=time)
+
+        if valence:
+            t.valence = valence
+        if intensity:
+            t.intensity = intensity
+
+        t.task_id = task_id
+        db.session.add(t)
+        db.session.commit()
+
     return jsonify({'status': SUCCESS})
+
+@app.route('/api/v1/history', methods=['GET'])
+@auth.login_required
+def get_todayshistory():
+    date_string = request.args.get('day')
+    if date_string:
+        time = datetime_from_utcstring(date_string)
+        history_objects = g.user.get_history(since=time)
+    else:
+        history_objects = g.user.get_history()
+
+    history = [h.get_dict() for h in history_objects]
+
+    return jsonify({'history':history})
+
+@app.route('/api/v1/timesheet', methods=['POST'])
+@auth.login_required
+def get_timesheet():
+    startdate = request.json.get('startdate')
+    enddate = request.json.get('enddate')
+    goal_id_list = request.json.get('goals')
+
+    relevant_history = History.query.filter_by(user_id=g.user.id)
+
+    if startdate:
+        startdate = datetime_from_utcstring(startdate)
+        relevant_history = relevant_history.filter(History.time>startdate)
+    
+    if enddate:
+        enddate = datetime_from_utcstring(enddate)
+        relevant_history = relevant_history.filter(History.time<enddate)
+
+    joined = relevant_history.join(Task)
+
+    if goal_id_list:
+        joined = joined.filter(Task.goal_id.in_(goal_id_list))
+
+    result = [{'tid':tid, 'name':name, 'goal_id':goal_id, 'time_spent':count}
+                for (tid, name, goal_id, count) \
+                    in joined.group_by(Task.id)\
+                            .values(Task.id, Task.name, 
+                                    Task.goal_id, sa.func.count(History.time))]
+
+    return jsonify({'timesheet':result})
 
 
 @app.route('/')

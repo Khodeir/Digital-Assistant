@@ -1,52 +1,58 @@
-<div class="container">
+<div class="row">
 	<h3>Current Milestones</h3>
 	<ul class="list-group">
-		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: task===selected}" ng-repeat="task in tasks | filter:{'done':false}">
+	    <div ng-repeat="(key,value) in tasks | groupBy: 'goal.gid'">
+		<li class="task list-group-item" ng-style="{'background-color' : task.goal.color}" ng-class="{selected: task===selected}" ng-repeat="task in value | filter:{'done':false}" ng-click="select(task)">
 
-		<form ng-if="editing===task" ng-submit="editTask(task)">
-			<input ng-model="task.name" type="text" ng-style="{'background-color' : getColor(task.goal)}">
+		<div ng-if="editing===task">
+		<form ng-submit="editTask(task)">
+			<input ng-model="task.name" type="text" style="background-color: inherit; width:80%;">
 			<span class="badge" style="float: right;">
-				<select ng-model="task.goal">
-					<option ng-repeat="goal in goals" ng-value="goal.name">{[{goal.name}]}</option>
+				<select ng-model="task.goal" style="background-color: inherit;" ng-options="goal as goal.name for goal in goals">
+
 				</select>
 			</span>
 			<input ng-change="editTask(task)" type="checkbox" ng-model="task.done">
 		</form>
-
+		<span class="glyphicon glyphicon-remove" ng-click="deleteTask(task)"></span>
+		</div>
 
 		<div ng-if="editing!==task">
 			{[{task.name}]}
 			<span class="badge" style="float: right;">
-				{[{task.goal}]}
+				{[{task.goal.name}]}
 			</span>
+			<div style="border: 1;" ng-if="selected===task" ng-click="edit(task)">
+			<span class="glyphicon glyphicon-edit"></span>
+			</div>
 		</div>
 		</li>
-		<li class="list-group-item" ng-style="{'background-color' : getColor(goal_name)}">
-	
-			<form ng-submit="addTask(task_name,goal_name)">
-				<input type="text" ng-model="task_name" class="task_input" ng-style="{'background-color' : getColor(goal_name)}">
-					<span class="badge" style="float: right;">
-					<select ng-model="goal_name">
-						<option value="">None</option>
-						<option ng-repeat="goal in goals" value="{[{goal.name}]}">
-							{[{goal.name}]}
-						</option>
+		</div>
+		<li class="list-group-item" ng-style="{'background-color' : new_task.goal.color}">
+
+			<form ng-submit="addTask(new_task)">
+				<input type="text" ng-model="new_task.name" class="task_input" style="background-color : inherit;">
+				<span class="badge" style="float: right;">
+
+					<select ng-model="new_task.goal" style="background-color: inherit;" ng-options="goal as goal.name for goal in goals">
+
 					</select>
-					</span>
-					<input style="display: none;" type="submit">
+
+
+				</span>
+				<input style="display: none;" type="submit">
 			</form>
 
 		</li>
 	</ul>
 	<h3>Done Bucket</h3>
 	<ul class="list-group">
-		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : getColor(task.goal)}" ng-class="{selected: task.tid==selected.tid}" ng-repeat="task in tasks | filter:{'done':true}">
+		<li ng-click="select(task)" class="task list-group-item" ng-style="{'background-color' : task.goal.color}" ng-class="{selected: task.tid==selected.tid}" ng-repeat="task in tasks | filter:{'done':true}">
 
 		<form ng-if="editing===task" ng-submit="editTask(task)">
-			<input ng-model="task.name" type="text" ng-style="{'background-color' : getColor(task.goal)}">
+			<input ng-model="task.name" type="text" style="background-color: inherit; width:80%;">
 			<span class="badge" style="float: right;">
-				<select ng-model="task.goal">
-					<option ng-repeat="goal in goals" ng-value="goal.name">{[{goal.name}]}</option>
+				<select ng-model="task.goal" style="background-color: inherit;" ng-options="goal as goal.name for goal in goals">
 
 				</select>
 			</span>
@@ -57,10 +63,13 @@
 		<div ng-if="editing!==task">
 			<s>{[{task.name}]}</s>
 			<span class="badge" style="float: right;">
-				{[{task.goal}]}
+				{[{task.goal.name}]}
 			</span>
+			<div style="border: 1;" ng-if="selected===task" ng-click="edit(task)">
+			<span class="glyphicon glyphicon-edit"></span>
+			</div>
 		</div>
 		</li>
 	</ul>
-	
+
 </div>

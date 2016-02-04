@@ -1,5 +1,5 @@
  // routes.js
-var app = angular.module('digitalAssistant', ['ui.router', 'base64', 'UserMgmt', 'ngTouch', 'chart.js']);
+var app = angular.module('digitalAssistant', ['ui.router', 'base64', 'UserMgmt', 'ngTouch', 'chart.js', 'angular.filter']);
 
 
 app.run(function ($rootScope, $state, loginModal, Session) {
@@ -32,151 +32,6 @@ app.run(function ($rootScope, $state, loginModal, Session) {
   });
 });
 
-app.controller('TaskController', 
-  function ($scope, $rootScope, Tasks, Goals){
-    $scope.user = $rootScope.currentUser;
-    $scope.tasks = [];
-    $scope.goals = [];
-    $scope.selected = null;
-    $scope.editing = null;
-
-    $scope.select = function (task){
-      if($scope.selected===task){
-        $scope.editing = task;
-      }
-      else{
-        $scope.editing = null;
-        $scope.selected = task;
-      }
-    }
-    
-    function getTasks(){
-      Tasks.get().success(function(data) {
-        $scope.tasks = data.tasks;
-      });
-    }
-
-    function getGoals(){
-      Goals.get().success(function(data){
-        $scope.goals = data.goals;
-      });
-    }
-
-    
-    $scope.getColor = Goals.getColor;
-
-    $scope.addTask = function (t,g){
-      Tasks.add(t,g).success(function(){
-        getTasks();
-        $scope.task_name = '';
-        $scope.goal_name = '';
-      });
-    };
-    $scope.editTask = function(task){
-      Tasks.add(task.name,task.goal,task.done,task.tid)
-            .success(getTasks)
-            .then(function (){
-              $scope.editing = null;
-            });
-    };
-
-    getGoals();
-    getTasks();
-
-  });
-app.controller('GoalController', 
-  function ($scope, Goals){
-
-    $scope.labels =['THING 1','THING 2'];
-    $scope.data = [[100,50]];
-    $scope.onClick = function(points,evt,d){
-      console.log(points,evt,d);
-    };
-    $scope.goals = [];
-    $scope.selected = null;
-    $scope.editing = null;
-
-    $scope.selectRow = function (i){
-      if($scope.selected==i){
-        $scope.editing = i;
-      }
-      else{
-        $scope.editing = null;
-        $scope.selected = i;
-      }
-
-    };
-    
-    function getGoals(){
-      Goals.get().success(function(data){
-        $scope.goals = data.goals;
-
-        Z = data.goals.reduce(function(pv, cv) { return pv + cv.weight; }, 0)/100.0;
-        $scope.data = [data.goals.map(function(goal){return goal.weight/Z;})];
-        console.log(data);
-        $scope.labels = data.goals.map(function(goal){return goal.name;});
-      });
-    }
-
-    $scope.addGoal = function (name,weight){
-      Goals.add(name,weight).success(function(){
-        getGoals();
-        $scope.goal_name = '';
-        $scope.goal_weight = '';
-      });
-    };
-    $scope.editGoal = function(goal){
-      Goals.add(goal.name,goal.weight,goal.gid)
-            .success(getGoals)
-            .then(function (){
-              $scope.editing = null;
-            });
-    };
-
-    getGoals();
-
-    
-    $scope.getColor = Goals.getColor;
-
-  });
-app.service('Tasks',function ($http) {
-    this.get = function (){
-      return $http.get('/api/v1/tasks');
-      
-    }
-    this.add = function (name,goal,done,tid) {
-      return $http.post('/api/v1/tasks',{'name':name, 'goal':goal,'done':done,'tid':tid});
-    };
-        
-  });
-app.factory('Goals',function ($http) {
-  model = {};
-    model.goal_index = [];
-    model.get = function (){
-      return $http.get('/api/v1/goals').success(function(data){
-        model.goal_index = data.goals.map(function(element){
-          return element.name; });
-      });
-      
-    };
-
-    model.add = function (name,weight,gid) {
-      return $http.post('/api/v1/goals',{'name':name, 'weight':weight,'gid':gid});
-    };
-
-    model.getColor = function (goalname){
-      var colors = ['A200BF','00757F','FFCC00','0001CF', '00E526', 
-                      'BF7200', '7F0072', 'FFDC00', 'CF0007']
-      var i = model.goal_index.indexOf(goalname);
-  
-      if(i == -1)
-        return 'white';
-      return colors[i%colors.length];
-    }
-
-    return model;
-        
-  });
 
 // app.js
 
@@ -184,11 +39,12 @@ app.factory('Goals',function ($http) {
 app.config(function ($stateProvider, $urlRouterProvider, 
                         $httpProvider, $interpolateProvider) {
 
-    $urlRouterProvider.otherwise('/');
+  $urlRouterProvider.otherwise('/');
 
   $stateProvider
     .state('welcome', {
       url: '/',
+      template: '<button class="btn-primary" ui-sref="app.tasks">Login</button>',
       // abstract: true,
       // templateUrl: '/static/derp.html',
       // controller: 'LoginModalCtrl',
@@ -199,7 +55,8 @@ app.config(function ($stateProvider, $urlRouterProvider,
     .state('app',{
 
       abstract: true,
-      template: "<ui-view/>",
+      templateUrl: "/static/app.html",
+      controller: 'MainController',
       data: {
         requireLogin: true // this property will apply to all children of 'app'
       }
@@ -217,6 +74,13 @@ app.config(function ($stateProvider, $urlRouterProvider,
       url: '/goals',
       templateUrl: '/static/GoalList.html',
       controller: 'GoalController',
+    })
+    .state('app.timesheet', {
+      // child state of `app`
+      // requireLogin === true
+      url: '/timesheet',
+      templateUrl: '/static/Timesheet.html',
+      controller: 'TimesheetController',
     });
 
     $httpProvider.interceptors.push(function ($timeout, $q, $injector) {
@@ -232,7 +96,7 @@ app.config(function ($stateProvider, $urlRouterProvider,
 
     return {
       responseError: function (rejection) {
-        if (rejection.status !== 403 || !rejection.config.handleError) {
+        if (rejection.status !== 403 || rejection.config.handleError==false) {
           return $q.reject(rejection);
         }
 
@@ -240,7 +104,8 @@ app.config(function ($stateProvider, $urlRouterProvider,
 
         loginModal()
           .then(function () {
-            deferred.resolve( $http(rejection.config) );
+            delete rejection.config.headers.Authorization;
+            deferred.resolve(  $http(rejection.config) );
           })
           .catch(function () {
             $state.go('welcome');

@@ -1,0 +1,45 @@
+<div class="row">
+	<input type="text" datepicker-popup ng-click="datepicker_start_isopen = true;" ng-model="startdate" is-open="datepicker_start_isopen" close-text="Close" />
+	<input type="text" datepicker-popup ng-click="datepicker_end_isopen = true;" ng-model="enddate" is-open="datepicker_end_isopen" close-text="Close" />
+
+	<span class="badge">
+		<select multiple ng-model="selected_goals" style="background-color: inherit;" ng-options="goal.gid as goal.name for goal in goals">
+
+		</select>
+	</span>
+	<button ng-click="updateTimeSheet()">Fetch</button>
+</div>
+<div class="row" ng-repeat="(key,value) in timesheet | groupBy: 'goal_id'" ng-init="goal = getGoalById(key)">
+	<ul class="col-md-8 list-group">
+		<li class="task list-group-item" ng-style="{'background-color' : goal.color}" ng-repeat="task in value">
+
+		
+			{[{task.name}]}
+			<span class="badge" style="float: right;">
+				{[{goal.name}]}
+			</span>
+
+
+		</li>
+		
+	</ul>
+	<ul class="col-md-4 list-group">
+		<li class="list-group-item" ng-repeat="task in value">
+
+		
+			{[{task.time_spent/2}]} hours
+
+
+		</li>
+		<li class="list-group-item">
+
+		
+			Total: {[{(value | map: 'time_spent' | sum)/2}]} hours
+
+
+		</li>
+		
+	</ul>
+
+	
+</div>

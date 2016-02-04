@@ -1,0 +1,53 @@
+
+<nav class="navbar navbar-default navbar-fixed" style="margin-bottom: 0;">
+    <ul class="nav navbar-nav">
+
+    <li><a href="/#/tasks">Tasks</a></li>
+    <li><a href="/#/goals">Goals</a></li>
+    <li><a href="/#/timesheet">Timesheet</a></li>
+    </ul>
+</nav>
+
+<link rel="stylesheet" href="/static/simple_sidebar.css">
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper" ng-controller="HistoryController">
+            <div  class="sidebar-nav">
+            <div class="table-responsive">
+            <table  class="table table-bordered" style="margin-bottom: 0;">
+                <tbody>
+
+                <tr ng-click="select($index)" ng-repeat="ts in timeslots" ng-class="{active: $index===selected}">
+                    <td ng-style="{'background-color' : getEmotionColor(ts)}">
+                    <a>{[{ts.start}]}
+                    </a>
+                    </td>
+                    <td ng-style="{'background-color' : getTaskColor(ts)}">
+                        <div class="task" ng-if="ts.task">
+                        {[{ts.task.name}]}<span style="float:right;"  ng-click="addHistory(null, ts)" class="glyphicon glyphicon-remove"></span>
+                        </div>
+
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div ui-view class="col-lg-12">
+                    </div>
+                </div>
+            </div>
+            <button ng-click="logout()" ng-show="!!$root.currentUser" class="btn-warning" ui-sref="welcome">Logout</button>
+
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
